@@ -1,0 +1,2308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="sid-38422fae-e03e-43a3-bef4-bd33b32041b2" targetNamespace="http://bpmn.io/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.13.2">
+  <collaboration id="Collaboration_0yenzyg">
+    <participant id="Participant_WarehouseStaff" name="Nhân viên kho" processRef="Process_1" />
+    <participant id="Participant_Sales_Inv" name="Nhân viên bán hàng" processRef="Process_Sales_Inv" />
+    <participant id="Participant_Factory" name="Xưởng sản xuất" />
+    <participant id="Participant_Customer_Pay" name="Khách hàng" processRef="Process_Customer_Pay" />
+    <participant id="Participant_Sales_Pay" name="Nhân viên bán hàng" processRef="Process_Sales_Pay" />
+    <participant id="Participant_Shipper" name="Đơn vị vận chuyển" />
+    <participant id="Participant_Customer" name="Khách hàng" processRef="Process_Customer" />
+    <participant id="Participant_Sales" name="Nhân viên bán hàng" processRef="Process_Sales" />
+    <messageFlow id="Flow_Msg_StockRequest" sourceRef="Activity_Sales_RequestStock" targetRef="Activity_WH_ReceiveRequest" />
+    <messageFlow id="Flow_Msg_FactoryOrder" sourceRef="Activity_WH_PlaceFactoryOrder" targetRef="Participant_Factory" />
+    <messageFlow id="Flow_Msg_FactoryDeliver" sourceRef="Participant_Factory" targetRef="Activity_WH_ReceiveFactory" />
+    <messageFlow id="Flow_Msg_NotifyReady" sourceRef="Activity_WH_NotifyReady" targetRef="Activity_Sales_ReceiveNotify" />
+    <messageFlow id="Flow_Msg_AnnounceAmount" sourceRef="Activity_SalesPay_Announce" targetRef="Activity_CustPay_ReceiveAmount" />
+    <messageFlow id="Flow_Msg_PayCash" sourceRef="Activity_CustPay_PayCash" targetRef="Activity_SalesPay_ReceiveCash" />
+    <messageFlow id="Flow_Msg_ShowQR" sourceRef="Activity_SalesPay_ShowQR" targetRef="Activity_CustPay_ScanQR" />
+    <messageFlow id="Flow_Msg_TransferProof" sourceRef="Activity_CustPay_SendProof" targetRef="Activity_SalesPay_ReceiveProof" />
+    <messageFlow id="Flow_Msg_ShipperDeliver" sourceRef="Participant_Shipper" targetRef="Activity_CustPay_ReceiveShipping" />
+    <messageFlow id="Flow_Msg_PayShipper" sourceRef="Activity_CustPay_PayShipper" targetRef="Participant_Shipper" />
+    <messageFlow id="Flow_009lt6v" sourceRef="Activity_Cust_Request" targetRef="Activity_Sales_Receive" />
+    <messageFlow id="Flow_08pxj3v" sourceRef="Activity_Sales_Consult" targetRef="Activity_Cust_ViewInfo" />
+    <messageFlow id="Flow_0mek60t" sourceRef="Activity_Cust_Select" targetRef="Activity_Sales_ReceiveSelection" />
+    <messageFlow id="Flow_1v3gt0z" sourceRef="Activity_Sales_NotifyNoStock" targetRef="Activity_Cust_ReceiveNoStock" />
+    <messageFlow id="Flow_003hn3e" sourceRef="Activity_Sales_ConfirmOrder" targetRef="Activity_Cust_ConfirmOrder" />
+    <messageFlow id="Flow_1nutyix" sourceRef="Activity_Sales_Handover" targetRef="Activity_Cust_ReceiveGoods" />
+    <messageFlow id="Flow_02ghgs0" sourceRef="Activity_WH_PickGoods" targetRef="Activity_Sales_ReceiveResult" />
+    <messageFlow id="Flow_0yvx0rf" sourceRef="Activity_Sales_RequestPacking" targetRef="Activity_WH_Package" />
+    <messageFlow id="Flow_13tyk32" sourceRef="Activity_SalesPay_RequestPacking" targetRef="Activity_WH_Package" />
+    <messageFlow id="Flow_0tf468g" sourceRef="Activity_SalesPay_TrackShipping" targetRef="Participant_Shipper" />
+    <messageFlow id="Flow_151ew16" sourceRef="Participant_Shipper" targetRef="Activity_SalesPay_ReceiveCODMoney" />
+  </collaboration>
+  <process id="Process_1" isExecutable="false">
+    <laneSet id="LaneSet_02a08km">
+      <lane id="Lane_Reconcile" name="Đối soát cuối ngày">
+        <flowNodeRef>StartEvent_WH_Reconcile</flowNodeRef>
+        <flowNodeRef>Activity_WH_CheckSoldOrders</flowNodeRef>
+        <flowNodeRef>Activity_WH_ReconcileStock</flowNodeRef>
+        <flowNodeRef>Gateway_WH_HasError</flowNodeRef>
+        <flowNodeRef>Activity_WH_CorrectExcel</flowNodeRef>
+        <flowNodeRef>Gateway_WH_ErrorMerge</flowNodeRef>
+        <flowNodeRef>Gateway_WH_StockLevel</flowNodeRef>
+        <flowNodeRef>Activity_WH_OrderMore</flowNodeRef>
+        <flowNodeRef>Gateway_WH_StockMerge</flowNodeRef>
+        <flowNodeRef>EndEvent_WH_ReconcileComplete</flowNodeRef>
+      </lane>
+      <lane id="Lane_FactoryOrder" name="Đặt hàng xưởng">
+        <flowNodeRef>StartEvent_WH_Factory</flowNodeRef>
+        <flowNodeRef>Activity_WH_RecordFactoryOrder</flowNodeRef>
+        <flowNodeRef>Activity_WH_ContactFactory</flowNodeRef>
+        <flowNodeRef>Activity_WH_PlaceFactoryOrder</flowNodeRef>
+        <flowNodeRef>Activity_WH_WaitFactory</flowNodeRef>
+        <flowNodeRef>Activity_WH_ReceiveFactory</flowNodeRef>
+        <flowNodeRef>Activity_WH_InspectFactory</flowNodeRef>
+        <flowNodeRef>Gateway_WH_FactoryOK</flowNodeRef>
+        <flowNodeRef>Activity_WH_NoteFactoryIssue</flowNodeRef>
+        <flowNodeRef>Gateway_WH_FactoryMerge</flowNodeRef>
+        <flowNodeRef>Activity_WH_NotifyReady</flowNodeRef>
+        <flowNodeRef>EndEvent_WH_FactoryComplete</flowNodeRef>
+      </lane>
+      <lane id="Lane_Receiving" name="Nhập kho">
+        <flowNodeRef>StartEvent_WH_Receive</flowNodeRef>
+        <flowNodeRef>Activity_WH_ReceiveGoods</flowNodeRef>
+        <flowNodeRef>Activity_WH_Inspect</flowNodeRef>
+        <flowNodeRef>Gateway_WH_InspectResult</flowNodeRef>
+        <flowNodeRef>Activity_WH_NoteIssue</flowNodeRef>
+        <flowNodeRef>Gateway_WH_IssueMerge</flowNodeRef>
+        <flowNodeRef>Activity_WH_UpdateStockIn</flowNodeRef>
+        <flowNodeRef>Activity_WH_Store</flowNodeRef>
+        <flowNodeRef>EndEvent_WH_ReceiveComplete</flowNodeRef>
+      </lane>
+      <lane id="Lane_StockCheck" name="Kiểm tra kho">
+        <flowNodeRef>StartEvent_WH_StockCheck</flowNodeRef>
+        <flowNodeRef>Activity_WH_ReceiveRequest</flowNodeRef>
+        <flowNodeRef>Activity_WH_CheckExcel</flowNodeRef>
+        <flowNodeRef>Gateway_WH_ExcelStock</flowNodeRef>
+        <flowNodeRef>Activity_WH_SearchWarehouse</flowNodeRef>
+        <flowNodeRef>Gateway_WH_Found</flowNodeRef>
+        <flowNodeRef>Activity_WH_PickGoods</flowNodeRef>
+        <flowNodeRef>Gateway_WH_Channel</flowNodeRef>
+        <flowNodeRef>Activity_WH_HandoverSales</flowNodeRef>
+        <flowNodeRef>EndEvent_WH_NoStock</flowNodeRef>
+        <flowNodeRef>Activity_WH_Package</flowNodeRef>
+        <flowNodeRef>Activity_WH_PackGoods</flowNodeRef>
+        <flowNodeRef>EndEvent_WH_CheckComplete</flowNodeRef>
+        <flowNodeRef>Gateway_WH_ChannelMerge</flowNodeRef>
+        <flowNodeRef>Activity_WH_HandoverShipper</flowNodeRef>
+        <flowNodeRef>Activity_WH_UpdateStockOut</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="StartEvent_WH_StockCheck" name="Nhận yêu cầu từ NV bán hàng">
+      <messageEventDefinition id="MessageEventDefinition_WH_Start" />
+      <outgoing>Flow_WH_C0</outgoing>
+    </startEvent>
+    <receiveTask id="Activity_WH_ReceiveRequest" name="Nhận yêu cầu kiểm tra kho">
+      <incoming>Flow_WH_C0</incoming>
+      <outgoing>Flow_WH_C1</outgoing>
+    </receiveTask>
+    <userTask id="Activity_WH_CheckExcel" name="Kiểm tra Excel tồn kho">
+      <incoming>Flow_WH_C1</incoming>
+      <outgoing>Flow_WH_C2</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_WH_ExcelStock" name="Excel&#10;còn hàng?">
+      <incoming>Flow_WH_C2</incoming>
+      <outgoing>Flow_WH_C_ExcelYes</outgoing>
+      <outgoing>Flow_WH_C_ExcelNo</outgoing>
+    </exclusiveGateway>
+    <manualTask id="Activity_WH_SearchWarehouse" name="Tìm kiếm hàng trong kho">
+      <incoming>Flow_WH_C_ExcelYes</incoming>
+      <outgoing>Flow_WH_C3</outgoing>
+    </manualTask>
+    <exclusiveGateway id="Gateway_WH_Found" name="Tìm thấy?">
+      <incoming>Flow_WH_C3</incoming>
+      <outgoing>Flow_WH_C_Found</outgoing>
+      <outgoing>Flow_WH_C_NotFound</outgoing>
+    </exclusiveGateway>
+    <manualTask id="Activity_WH_PickGoods" name="Lấy hàng từ kho">
+      <incoming>Flow_WH_C_Found</incoming>
+      <outgoing>Flow_WH_C4</outgoing>
+    </manualTask>
+    <exclusiveGateway id="Gateway_WH_Channel" name="Kênh bán?">
+      <incoming>Flow_WH_C4</incoming>
+      <outgoing>Flow_WH_C_Offline</outgoing>
+      <outgoing>Flow_WH_C_Online</outgoing>
+    </exclusiveGateway>
+    <sendTask id="Activity_WH_HandoverSales" name="Giao cho NV bán hàng">
+      <incoming>Flow_WH_C_Offline</incoming>
+      <outgoing>Flow_WH_C5</outgoing>
+    </sendTask>
+    <endEvent id="EndEvent_WH_NoStock" name="Không có hàng">
+      <incoming>Flow_WH_C_ExcelNo</incoming>
+      <incoming>Flow_WH_C_NotFound</incoming>
+    </endEvent>
+    <startEvent id="StartEvent_WH_Receive" name="Nhận hàng từ&#10;nhà cung cấp">
+      <outgoing>Flow_WH_R1</outgoing>
+    </startEvent>
+    <receiveTask id="Activity_WH_ReceiveGoods" name="Nhân viên kho nhận hàng">
+      <incoming>Flow_WH_R1</incoming>
+      <outgoing>Flow_WH_R2</outgoing>
+    </receiveTask>
+    <userTask id="Activity_WH_Inspect" name="Kiểm tra thủ công:&#10;SL, màu, size, chất lượng">
+      <incoming>Flow_WH_R2</incoming>
+      <outgoing>Flow_WH_R3</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_WH_InspectResult" name="Có vấn đề?">
+      <incoming>Flow_WH_R3</incoming>
+      <outgoing>Flow_WH_R_OK</outgoing>
+      <outgoing>Flow_WH_R_Issue</outgoing>
+    </exclusiveGateway>
+    <userTask id="Activity_WH_NoteIssue" name="Ghi chú vấn đề (Excel)">
+      <incoming>Flow_WH_R_Issue</incoming>
+      <outgoing>Flow_WH_R4</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_WH_IssueMerge">
+      <incoming>Flow_WH_R_OK</incoming>
+      <incoming>Flow_WH_R4</incoming>
+      <outgoing>Flow_WH_R5</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="Activity_WH_UpdateStockIn" name="Cập nhật tồn kho (Excel)">
+      <incoming>Flow_WH_R5</incoming>
+      <outgoing>Flow_WH_R6</outgoing>
+    </serviceTask>
+    <manualTask id="Activity_WH_Store" name="Lưu trữ vào kho">
+      <incoming>Flow_WH_R6</incoming>
+      <outgoing>Flow_WH_R7</outgoing>
+    </manualTask>
+    <endEvent id="EndEvent_WH_ReceiveComplete" name="Nhập kho hoàn tất">
+      <incoming>Flow_WH_R7</incoming>
+    </endEvent>
+    <startEvent id="StartEvent_WH_Factory" name="Yêu cầu đặt xưởng">
+      <outgoing>Flow_WH_F1</outgoing>
+    </startEvent>
+    <userTask id="Activity_WH_RecordFactoryOrder" name="Ghi nhận đơn đặt xưởng">
+      <incoming>Flow_WH_F1</incoming>
+      <outgoing>Flow_WH_F2</outgoing>
+    </userTask>
+    <userTask id="Activity_WH_ContactFactory" name="Liên hệ xưởng">
+      <incoming>Flow_WH_F2</incoming>
+      <outgoing>Flow_WH_F3</outgoing>
+    </userTask>
+    <sendTask id="Activity_WH_PlaceFactoryOrder" name="Đặt hàng&#10;(SP, SL, thời gian)">
+      <incoming>Flow_WH_F3</incoming>
+      <outgoing>Flow_WH_F4</outgoing>
+    </sendTask>
+    <intermediateCatchEvent id="Activity_WH_WaitFactory" name="Chờ nhận hàng từ xưởng">
+      <incoming>Flow_WH_F4</incoming>
+      <outgoing>Flow_WH_F5</outgoing>
+      <timerEventDefinition id="TimerEventDefinition_WH_Factory" />
+    </intermediateCatchEvent>
+    <receiveTask id="Activity_WH_ReceiveFactory" name="Nhận hàng từ xưởng">
+      <incoming>Flow_WH_F5</incoming>
+      <outgoing>Flow_WH_F6</outgoing>
+    </receiveTask>
+    <userTask id="Activity_WH_InspectFactory" name="Kiểm tra hàng">
+      <incoming>Flow_WH_F6</incoming>
+      <outgoing>Flow_WH_F7</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_WH_FactoryOK" name="Đạt yêu cầu?">
+      <incoming>Flow_WH_F7</incoming>
+      <outgoing>Flow_WH_F_OK</outgoing>
+      <outgoing>Flow_WH_F_Issue</outgoing>
+    </exclusiveGateway>
+    <userTask id="Activity_WH_NoteFactoryIssue" name="Ghi chú vấn đề">
+      <incoming>Flow_WH_F_Issue</incoming>
+      <outgoing>Flow_WH_F8</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_WH_FactoryMerge">
+      <incoming>Flow_WH_F_OK</incoming>
+      <incoming>Flow_WH_F8</incoming>
+      <outgoing>Flow_WH_F9</outgoing>
+    </exclusiveGateway>
+    <startEvent id="StartEvent_WH_Reconcile" name="Cuối ngày">
+      <outgoing>Flow_WH_D1</outgoing>
+    </startEvent>
+    <userTask id="Activity_WH_CheckSoldOrders" name="Kiểm tra đơn đã bán">
+      <incoming>Flow_WH_D1</incoming>
+      <outgoing>Flow_WH_D2</outgoing>
+    </userTask>
+    <userTask id="Activity_WH_ReconcileStock" name="Đối chiếu Excel">
+      <incoming>Flow_WH_D2</incoming>
+      <outgoing>Flow_WH_D3</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_WH_HasError" name="Có sai sót?">
+      <incoming>Flow_WH_D3</incoming>
+      <outgoing>Flow_WH_D_HasError</outgoing>
+      <outgoing>Flow_WH_D_NoError</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="Activity_WH_CorrectExcel" name="Cập nhật lại Excel">
+      <incoming>Flow_WH_D_HasError</incoming>
+      <outgoing>Flow_WH_D4</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="Gateway_WH_ErrorMerge">
+      <incoming>Flow_WH_D_NoError</incoming>
+      <incoming>Flow_WH_D4</incoming>
+      <outgoing>Flow_WH_D5</outgoing>
+    </exclusiveGateway>
+    <exclusiveGateway id="Gateway_WH_StockLevel" name="Mức tồn?">
+      <incoming>Flow_WH_D5</incoming>
+      <outgoing>Flow_WH_D_Low</outgoing>
+      <outgoing>Flow_WH_D_Enough</outgoing>
+    </exclusiveGateway>
+    <userTask id="Activity_WH_OrderMore" name="Tạo yêu cầu đặt xưởng">
+      <incoming>Flow_WH_D_Low</incoming>
+      <outgoing>Flow_WH_D6</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_WH_StockMerge">
+      <incoming>Flow_WH_D_Enough</incoming>
+      <incoming>Flow_WH_D6</incoming>
+      <outgoing>Flow_WH_D7</outgoing>
+    </exclusiveGateway>
+    <endEvent id="EndEvent_WH_ReconcileComplete" name="Đối soát hoàn tất">
+      <incoming>Flow_WH_D7</incoming>
+    </endEvent>
+    <sendTask id="Activity_WH_NotifyReady" name="Thông báo hàng đã về">
+      <incoming>Flow_WH_F9</incoming>
+      <outgoing>Flow_WH_F11</outgoing>
+    </sendTask>
+    <endEvent id="EndEvent_WH_FactoryComplete" name="Đặt xưởng hoàn tất">
+      <incoming>Flow_WH_F11</incoming>
+    </endEvent>
+    <receiveTask id="Activity_WH_Package" name="Nhận yêu cầu đóng hàng">
+      <incoming>Flow_WH_C_Online</incoming>
+      <outgoing>Flow_0c2ya7v</outgoing>
+    </receiveTask>
+    <manualTask id="Activity_WH_PackGoods" name="Đóng gói hàng">
+      <incoming>Flow_0c2ya7v</incoming>
+      <outgoing>Flow_0v2suf5</outgoing>
+    </manualTask>
+    <endEvent id="EndEvent_WH_CheckComplete" name="Xuất kho thành công">
+      <incoming>Flow_08n08fl</incoming>
+    </endEvent>
+    <exclusiveGateway id="Gateway_WH_ChannelMerge">
+      <incoming>Flow_WH_C5</incoming>
+      <incoming>Flow_1t48542</incoming>
+      <outgoing>Flow_WH_C7</outgoing>
+    </exclusiveGateway>
+    <sendTask id="Activity_WH_HandoverShipper" name="Đưa đơn hàng cho đơn vị vận chuyển">
+      <incoming>Flow_0v2suf5</incoming>
+      <outgoing>Flow_1t48542</outgoing>
+    </sendTask>
+    <serviceTask id="Activity_WH_UpdateStockOut" name="Trừ tồn kho (Excel)">
+      <incoming>Flow_WH_C7</incoming>
+      <outgoing>Flow_08n08fl</outgoing>
+    </serviceTask>
+    <sequenceFlow id="Flow_WH_C0" sourceRef="StartEvent_WH_StockCheck" targetRef="Activity_WH_ReceiveRequest" />
+    <sequenceFlow id="Flow_WH_C1" sourceRef="Activity_WH_ReceiveRequest" targetRef="Activity_WH_CheckExcel" />
+    <sequenceFlow id="Flow_WH_C2" sourceRef="Activity_WH_CheckExcel" targetRef="Gateway_WH_ExcelStock" />
+    <sequenceFlow id="Flow_WH_C_ExcelYes" name="Có" sourceRef="Gateway_WH_ExcelStock" targetRef="Activity_WH_SearchWarehouse" />
+    <sequenceFlow id="Flow_WH_C_ExcelNo" name="Không" sourceRef="Gateway_WH_ExcelStock" targetRef="EndEvent_WH_NoStock" />
+    <sequenceFlow id="Flow_WH_C3" sourceRef="Activity_WH_SearchWarehouse" targetRef="Gateway_WH_Found" />
+    <sequenceFlow id="Flow_WH_C_Found" name="Có" sourceRef="Gateway_WH_Found" targetRef="Activity_WH_PickGoods" />
+    <sequenceFlow id="Flow_WH_C_NotFound" name="Không" sourceRef="Gateway_WH_Found" targetRef="EndEvent_WH_NoStock" />
+    <sequenceFlow id="Flow_WH_C4" sourceRef="Activity_WH_PickGoods" targetRef="Gateway_WH_Channel" />
+    <sequenceFlow id="Flow_WH_C_Offline" name="Offline" sourceRef="Gateway_WH_Channel" targetRef="Activity_WH_HandoverSales" />
+    <sequenceFlow id="Flow_WH_C_Online" name="Online" sourceRef="Gateway_WH_Channel" targetRef="Activity_WH_Package" />
+    <sequenceFlow id="Flow_WH_C5" sourceRef="Activity_WH_HandoverSales" targetRef="Gateway_WH_ChannelMerge" />
+    <sequenceFlow id="Flow_WH_R1" sourceRef="StartEvent_WH_Receive" targetRef="Activity_WH_ReceiveGoods" />
+    <sequenceFlow id="Flow_WH_R2" sourceRef="Activity_WH_ReceiveGoods" targetRef="Activity_WH_Inspect" />
+    <sequenceFlow id="Flow_WH_R3" sourceRef="Activity_WH_Inspect" targetRef="Gateway_WH_InspectResult" />
+    <sequenceFlow id="Flow_WH_R_OK" name="Không" sourceRef="Gateway_WH_InspectResult" targetRef="Gateway_WH_IssueMerge" />
+    <sequenceFlow id="Flow_WH_R_Issue" name="Có" sourceRef="Gateway_WH_InspectResult" targetRef="Activity_WH_NoteIssue" />
+    <sequenceFlow id="Flow_WH_R4" sourceRef="Activity_WH_NoteIssue" targetRef="Gateway_WH_IssueMerge" />
+    <sequenceFlow id="Flow_WH_R5" sourceRef="Gateway_WH_IssueMerge" targetRef="Activity_WH_UpdateStockIn" />
+    <sequenceFlow id="Flow_WH_R6" sourceRef="Activity_WH_UpdateStockIn" targetRef="Activity_WH_Store" />
+    <sequenceFlow id="Flow_WH_R7" sourceRef="Activity_WH_Store" targetRef="EndEvent_WH_ReceiveComplete" />
+    <sequenceFlow id="Flow_WH_F1" sourceRef="StartEvent_WH_Factory" targetRef="Activity_WH_RecordFactoryOrder" />
+    <sequenceFlow id="Flow_WH_F2" sourceRef="Activity_WH_RecordFactoryOrder" targetRef="Activity_WH_ContactFactory" />
+    <sequenceFlow id="Flow_WH_F3" sourceRef="Activity_WH_ContactFactory" targetRef="Activity_WH_PlaceFactoryOrder" />
+    <sequenceFlow id="Flow_WH_F4" sourceRef="Activity_WH_PlaceFactoryOrder" targetRef="Activity_WH_WaitFactory" />
+    <sequenceFlow id="Flow_WH_F5" sourceRef="Activity_WH_WaitFactory" targetRef="Activity_WH_ReceiveFactory" />
+    <sequenceFlow id="Flow_WH_F6" sourceRef="Activity_WH_ReceiveFactory" targetRef="Activity_WH_InspectFactory" />
+    <sequenceFlow id="Flow_WH_F7" sourceRef="Activity_WH_InspectFactory" targetRef="Gateway_WH_FactoryOK" />
+    <sequenceFlow id="Flow_WH_F_OK" name="OK" sourceRef="Gateway_WH_FactoryOK" targetRef="Gateway_WH_FactoryMerge" />
+    <sequenceFlow id="Flow_WH_F_Issue" name="Có vấn đề" sourceRef="Gateway_WH_FactoryOK" targetRef="Activity_WH_NoteFactoryIssue" />
+    <sequenceFlow id="Flow_WH_F8" sourceRef="Activity_WH_NoteFactoryIssue" targetRef="Gateway_WH_FactoryMerge" />
+    <sequenceFlow id="Flow_WH_F9" sourceRef="Gateway_WH_FactoryMerge" targetRef="Activity_WH_NotifyReady" />
+    <sequenceFlow id="Flow_WH_D1" sourceRef="StartEvent_WH_Reconcile" targetRef="Activity_WH_CheckSoldOrders" />
+    <sequenceFlow id="Flow_WH_D2" sourceRef="Activity_WH_CheckSoldOrders" targetRef="Activity_WH_ReconcileStock" />
+    <sequenceFlow id="Flow_WH_D3" sourceRef="Activity_WH_ReconcileStock" targetRef="Gateway_WH_HasError" />
+    <sequenceFlow id="Flow_WH_D_HasError" name="Có" sourceRef="Gateway_WH_HasError" targetRef="Activity_WH_CorrectExcel" />
+    <sequenceFlow id="Flow_WH_D_NoError" name="Không" sourceRef="Gateway_WH_HasError" targetRef="Gateway_WH_ErrorMerge" />
+    <sequenceFlow id="Flow_WH_D4" sourceRef="Activity_WH_CorrectExcel" targetRef="Gateway_WH_ErrorMerge" />
+    <sequenceFlow id="Flow_WH_D5" sourceRef="Gateway_WH_ErrorMerge" targetRef="Gateway_WH_StockLevel" />
+    <sequenceFlow id="Flow_WH_D_Low" name="Thấp" sourceRef="Gateway_WH_StockLevel" targetRef="Activity_WH_OrderMore" />
+    <sequenceFlow id="Flow_WH_D_Enough" name="Đủ" sourceRef="Gateway_WH_StockLevel" targetRef="Gateway_WH_StockMerge" />
+    <sequenceFlow id="Flow_WH_D6" sourceRef="Activity_WH_OrderMore" targetRef="Gateway_WH_StockMerge" />
+    <sequenceFlow id="Flow_WH_D7" sourceRef="Gateway_WH_StockMerge" targetRef="EndEvent_WH_ReconcileComplete" />
+    <sequenceFlow id="Flow_WH_F11" sourceRef="Activity_WH_NotifyReady" targetRef="EndEvent_WH_FactoryComplete" />
+    <sequenceFlow id="Flow_0c2ya7v" sourceRef="Activity_WH_Package" targetRef="Activity_1donkhs" />
+    <sequenceFlow id="Flow_0v2suf5" sourceRef="Activity_1donkhs" targetRef="Activity_1i92k9w" />
+    <sequenceFlow id="Flow_08n08fl" sourceRef="Activity_WH_UpdateStockOut" targetRef="EndEvent_WH_CheckComplete" />
+    <sequenceFlow id="Flow_1t48542" sourceRef="Activity_1i92k9w" targetRef="Gateway_WH_ChannelMerge" />
+    <sequenceFlow id="Flow_WH_C7" sourceRef="Gateway_WH_ChannelMerge" targetRef="Activity_WH_UpdateStockOut" />
+  </process>
+  <process id="Process_Sales_Inv" name="Nhân viên bán hàng" isExecutable="false">
+    <startEvent id="StartEvent_SalesInv_Request" name="Cần kiểm tra kho">
+      <outgoing>Flow_SalesInv0</outgoing>
+    </startEvent>
+    <sendTask id="Activity_Sales_RequestStock" name="Yêu cầu kiểm tra kho">
+      <incoming>Flow_SalesInv0</incoming>
+      <outgoing>Flow_SalesInv1</outgoing>
+    </sendTask>
+    <receiveTask id="Activity_Sales_ReceiveResult" name="Nhận kết quả kiểm tra">
+      <incoming>Flow_SalesInv1</incoming>
+      <outgoing>Flow_09cwawk</outgoing>
+    </receiveTask>
+    <endEvent id="EndEvent_SalesInv_Check" name="Hoàn tất kiểm tra">
+      <incoming>Flow_09cwawk</incoming>
+    </endEvent>
+    <startEvent id="StartEvent_SalesInv_Notify" name="Hàng xưởng về">
+      <messageEventDefinition id="MessageEventDefinition_SalesInv_Notify" />
+      <outgoing>Flow_SalesInv2</outgoing>
+    </startEvent>
+    <receiveTask id="Activity_Sales_ReceiveNotify" name="Nhận thông báo hàng về">
+      <incoming>Flow_SalesInv2</incoming>
+      <outgoing>Flow_SalesInv3</outgoing>
+    </receiveTask>
+    <endEvent id="EndEvent_SalesInv_Notify" name="Hoàn tất nhận hàng">
+      <incoming>Flow_SalesInv3</incoming>
+    </endEvent>
+    <sequenceFlow id="Flow_SalesInv0" sourceRef="StartEvent_SalesInv_Request" targetRef="Activity_Sales_RequestStock" />
+    <sequenceFlow id="Flow_SalesInv1" sourceRef="Activity_Sales_RequestStock" targetRef="Activity_Sales_ReceiveResult" />
+    <sequenceFlow id="Flow_09cwawk" sourceRef="Activity_Sales_ReceiveResult" targetRef="EndEvent_SalesInv_Check" />
+    <sequenceFlow id="Flow_SalesInv2" sourceRef="StartEvent_SalesInv_Notify" targetRef="Activity_Sales_ReceiveNotify" />
+    <sequenceFlow id="Flow_SalesInv3" sourceRef="Activity_Sales_ReceiveNotify" targetRef="EndEvent_SalesInv_Notify" />
+  </process>
+  <process id="Process_Customer_Pay" name="Khách hàng" isExecutable="false">
+    <laneSet id="LaneSet_CustomerPay">
+      <lane id="Lane_CustomerPay">
+        <flowNodeRef>StartEvent_CustPay</flowNodeRef>
+        <flowNodeRef>Activity_CustPay_ReceiveAmount</flowNodeRef>
+        <flowNodeRef>Gateway_CustPay_Method</flowNodeRef>
+        <flowNodeRef>Activity_CustPay_ScanQR</flowNodeRef>
+        <flowNodeRef>Activity_CustPay_Transfer</flowNodeRef>
+        <flowNodeRef>Activity_CustPay_SendProof</flowNodeRef>
+        <flowNodeRef>Gateway_CustPay_OffMerge</flowNodeRef>
+        <flowNodeRef>EndEvent_CustPay_Complete</flowNodeRef>
+        <flowNodeRef>Activity_CustPay_ReceiveShipping</flowNodeRef>
+        <flowNodeRef>Activity_CustPay_PayShipper</flowNodeRef>
+        <flowNodeRef>Activity_CustPay_PayCash</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="StartEvent_CustPay" name="Bắt đầu thanh toán">
+      <messageEventDefinition id="MessageEventDefinition_CustPay" />
+      <outgoing>Flow_CustPay0</outgoing>
+    </startEvent>
+    <receiveTask id="Activity_CustPay_ReceiveAmount" name="Nhận thông báo số tiền">
+      <incoming>Flow_CustPay0</incoming>
+      <outgoing>Flow_CustPay1</outgoing>
+    </receiveTask>
+    <exclusiveGateway id="Gateway_CustPay_Method" name="Phương thức?">
+      <incoming>Flow_CustPay1</incoming>
+      <outgoing>Flow_CustPay_Cash</outgoing>
+      <outgoing>Flow_CustPay_Transfer</outgoing>
+      <outgoing>Flow_CustPay_COD</outgoing>
+    </exclusiveGateway>
+    <userTask id="Activity_CustPay_ScanQR" name="Quét mã QR">
+      <incoming>Flow_CustPay_Transfer</incoming>
+      <outgoing>Flow_CustPay3</outgoing>
+    </userTask>
+    <userTask id="Activity_CustPay_Transfer" name="Chuyển khoản">
+      <incoming>Flow_CustPay3</incoming>
+      <outgoing>Flow_CustPay4</outgoing>
+    </userTask>
+    <sendTask id="Activity_CustPay_SendProof" name="Gửi ảnh xác nhận">
+      <incoming>Flow_CustPay4</incoming>
+      <outgoing>Flow_CustPay5</outgoing>
+    </sendTask>
+    <exclusiveGateway id="Gateway_CustPay_OffMerge">
+      <incoming>Flow_CustPay2</incoming>
+      <incoming>Flow_CustPay5</incoming>
+      <outgoing>Flow_CustPay6</outgoing>
+    </exclusiveGateway>
+    <endEvent id="EndEvent_CustPay_Complete" name="Thanh toán hoàn tất">
+      <incoming>Flow_CustPay6</incoming>
+      <incoming>Flow_CustPay8</incoming>
+    </endEvent>
+    <receiveTask id="Activity_CustPay_ReceiveShipping" name="Nhận hàng từ shipper">
+      <incoming>Flow_CustPay_COD</incoming>
+      <outgoing>Flow_CustPay7</outgoing>
+    </receiveTask>
+    <userTask id="Activity_CustPay_PayShipper" name="Thanh toán COD">
+      <incoming>Flow_CustPay7</incoming>
+      <outgoing>Flow_CustPay8</outgoing>
+    </userTask>
+    <userTask id="Activity_CustPay_PayCash" name="Thanh toán tiền mặt">
+      <incoming>Flow_CustPay_Cash</incoming>
+      <outgoing>Flow_CustPay2</outgoing>
+    </userTask>
+    <sequenceFlow id="Flow_CustPay0" sourceRef="StartEvent_CustPay" targetRef="Activity_CustPay_ReceiveAmount" />
+    <sequenceFlow id="Flow_CustPay1" sourceRef="Activity_CustPay_ReceiveAmount" targetRef="Gateway_CustPay_Method" />
+    <sequenceFlow id="Flow_CustPay_Cash" name="Tiền mặt" sourceRef="Gateway_CustPay_Method" targetRef="Activity_CustPay_PayCash" />
+    <sequenceFlow id="Flow_CustPay_Transfer" name="Chuyển khoản" sourceRef="Gateway_CustPay_Method" targetRef="Activity_CustPay_ScanQR" />
+    <sequenceFlow id="Flow_CustPay_COD" name="COD" sourceRef="Gateway_CustPay_Method" targetRef="Activity_CustPay_ReceiveShipping" />
+    <sequenceFlow id="Flow_CustPay3" sourceRef="Activity_CustPay_ScanQR" targetRef="Activity_CustPay_Transfer" />
+    <sequenceFlow id="Flow_CustPay4" sourceRef="Activity_CustPay_Transfer" targetRef="Activity_CustPay_SendProof" />
+    <sequenceFlow id="Flow_CustPay5" sourceRef="Activity_CustPay_SendProof" targetRef="Gateway_CustPay_OffMerge" />
+    <sequenceFlow id="Flow_CustPay2" sourceRef="Activity_CustPay_PayCash" targetRef="Gateway_CustPay_OffMerge" />
+    <sequenceFlow id="Flow_CustPay6" sourceRef="Gateway_CustPay_OffMerge" targetRef="EndEvent_CustPay_Complete" />
+    <sequenceFlow id="Flow_CustPay8" sourceRef="Activity_CustPay_PayShipper" targetRef="EndEvent_CustPay_Complete" />
+    <sequenceFlow id="Flow_CustPay7" sourceRef="Activity_CustPay_ReceiveShipping" targetRef="Activity_CustPay_PayShipper" />
+  </process>
+  <process id="Process_Sales_Pay" name="Nhân viên bán hàng" isExecutable="false">
+    <laneSet id="LaneSet_SalesPay">
+      <lane id="Lane_SalesPay_Online" name="Thanh toán Online">
+        <flowNodeRef>StartEvent_SalesPay_On</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ConfirmMethod</flowNodeRef>
+        <flowNodeRef>Gateway_SalesPay_OnMethod</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_SendAccount</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_WaitTransfer</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ReceiveBill</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_VerifyOnline</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ShareProofOnline</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_UpdatePaid</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_CreateShipping</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ReceiveCODMoney</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ReconcileCOD</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_UpdateCODPaid</flowNodeRef>
+        <flowNodeRef>Gateway_SalesPay_OnMerge</flowNodeRef>
+        <flowNodeRef>EndEvent_SalesPay_OnComplete</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_RecordCOD</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_TrackShipping</flowNodeRef>
+        <flowNodeRef>Activity_1kdjem7</flowNodeRef>
+      </lane>
+      <lane id="Lane_SalesPay_Offline" name="Thanh toán Offline">
+        <flowNodeRef>StartEvent_SalesPay_Off</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_Announce</flowNodeRef>
+        <flowNodeRef>Gateway_SalesPay_OffMethod</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ReceiveCash</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_CheckCash</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ShowQR</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ReceiveProof</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_VerifyTransfer</flowNodeRef>
+        <flowNodeRef>Gateway_SalesPay_OffMerge</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_RecordOff</flowNodeRef>
+        <flowNodeRef>Activity_SalesPay_ShareProof</flowNodeRef>
+        <flowNodeRef>EndEvent_SalesPay_OffComplete</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="StartEvent_SalesPay_Off" name="Xác nhận thanh toán&#10;(Offline)">
+      <outgoing>Flow_SalesPay_Off1</outgoing>
+    </startEvent>
+    <sendTask id="Activity_SalesPay_Announce" name="Thông báo số tiền">
+      <incoming>Flow_SalesPay_Off1</incoming>
+      <outgoing>Flow_SalesPay_Off2</outgoing>
+    </sendTask>
+    <exclusiveGateway id="Gateway_SalesPay_OffMethod" name="Phương thức?">
+      <incoming>Flow_SalesPay_Off2</incoming>
+      <outgoing>Flow_SalesPay_Off_Cash</outgoing>
+      <outgoing>Flow_SalesPay_Off_Transfer</outgoing>
+    </exclusiveGateway>
+    <receiveTask id="Activity_SalesPay_ReceiveCash" name="Nhận tiền mặt">
+      <incoming>Flow_SalesPay_Off_Cash</incoming>
+      <outgoing>Flow_SalesPay_Off3</outgoing>
+    </receiveTask>
+    <userTask id="Activity_SalesPay_CheckCash" name="Kiểm tra tiền">
+      <incoming>Flow_SalesPay_Off3</incoming>
+      <outgoing>Flow_SalesPay_Off4</outgoing>
+    </userTask>
+    <sendTask id="Activity_SalesPay_ShowQR" name="Đưa mã QR">
+      <incoming>Flow_SalesPay_Off_Transfer</incoming>
+      <outgoing>Flow_SalesPay_Off5</outgoing>
+    </sendTask>
+    <receiveTask id="Activity_SalesPay_ReceiveProof" name="Nhận ảnh xác nhận">
+      <incoming>Flow_SalesPay_Off5</incoming>
+      <outgoing>Flow_SalesPay_Off6</outgoing>
+    </receiveTask>
+    <userTask id="Activity_SalesPay_VerifyTransfer" name="Kiểm tra CK">
+      <incoming>Flow_SalesPay_Off6</incoming>
+      <outgoing>Flow_SalesPay_Off7</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_SalesPay_OffMerge">
+      <incoming>Flow_SalesPay_Off4</incoming>
+      <incoming>Flow_SalesPay_Off7</incoming>
+      <outgoing>Flow_SalesPay_Off8</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="Activity_SalesPay_RecordOff" name="Ghi nhận (Excel)">
+      <incoming>Flow_SalesPay_Off8</incoming>
+      <outgoing>Flow_SalesPay_Off9</outgoing>
+    </serviceTask>
+    <sendTask id="Activity_SalesPay_ShareProof" name="Chụp màn hình&#10;gửi group nội bộ">
+      <incoming>Flow_SalesPay_Off9</incoming>
+      <outgoing>Flow_SalesPay_Off10</outgoing>
+    </sendTask>
+    <endEvent id="EndEvent_SalesPay_OffComplete" name="Thanh toán Offline&#10;hoàn tất">
+      <incoming>Flow_SalesPay_Off10</incoming>
+    </endEvent>
+    <startEvent id="StartEvent_SalesPay_On" name="Xác nhận thanh toán&#10;(Online)">
+      <outgoing>Flow_SalesPay_On1</outgoing>
+    </startEvent>
+    <userTask id="Activity_SalesPay_ConfirmMethod" name="Xác nhận phương thức">
+      <incoming>Flow_SalesPay_On1</incoming>
+      <outgoing>Flow_SalesPay_On2</outgoing>
+    </userTask>
+    <exclusiveGateway id="Gateway_SalesPay_OnMethod" name="Phương thức?">
+      <incoming>Flow_SalesPay_On2</incoming>
+      <outgoing>Flow_SalesPay_On_PreTransfer</outgoing>
+      <outgoing>Flow_SalesPay_On_COD</outgoing>
+    </exclusiveGateway>
+    <sendTask id="Activity_SalesPay_SendAccount" name="Gửi thông tin TK">
+      <incoming>Flow_SalesPay_On_PreTransfer</incoming>
+      <outgoing>Flow_SalesPay_On3</outgoing>
+    </sendTask>
+    <intermediateCatchEvent id="Activity_SalesPay_WaitTransfer" name="Chờ khách CK">
+      <incoming>Flow_SalesPay_On3</incoming>
+      <outgoing>Flow_SalesPay_On4</outgoing>
+      <timerEventDefinition id="TimerEventDefinition_WaitTransfer" />
+    </intermediateCatchEvent>
+    <receiveTask id="Activity_SalesPay_ReceiveBill" name="Nhận ảnh bill">
+      <incoming>Flow_SalesPay_On4</incoming>
+      <outgoing>Flow_SalesPay_On5</outgoing>
+    </receiveTask>
+    <userTask id="Activity_SalesPay_VerifyOnline" name="Kiểm tra thủ công">
+      <incoming>Flow_SalesPay_On5</incoming>
+      <outgoing>Flow_SalesPay_On6</outgoing>
+    </userTask>
+    <sendTask id="Activity_SalesPay_ShareProofOnline" name="Gửi group xác nhận">
+      <incoming>Flow_SalesPay_On6</incoming>
+      <outgoing>Flow_SalesPay_On7</outgoing>
+    </sendTask>
+    <serviceTask id="Activity_SalesPay_UpdatePaid" name="Cập nhật: Đã thanh toán">
+      <incoming>Flow_SalesPay_On7</incoming>
+      <outgoing>Flow_SalesPay_On8</outgoing>
+    </serviceTask>
+    <userTask id="Activity_SalesPay_CreateShipping" name="Tạo đơn ship (COD)">
+      <incoming>Flow_SalesPay_On_COD</incoming>
+      <outgoing>Flow_SalesPay_On9</outgoing>
+    </userTask>
+    <receiveTask id="Activity_SalesPay_ReceiveCODMoney" name="Nhận tiền từ shipper">
+      <incoming>Flow_SalesPay_On11</incoming>
+      <outgoing>Flow_SalesPay_On12</outgoing>
+    </receiveTask>
+    <userTask id="Activity_SalesPay_ReconcileCOD" name="Đối chiếu COD">
+      <incoming>Flow_SalesPay_On12</incoming>
+      <outgoing>Flow_SalesPay_On13</outgoing>
+    </userTask>
+    <serviceTask id="Activity_SalesPay_UpdateCODPaid" name="Cập nhật: Đã thanh toán COD">
+      <incoming>Flow_SalesPay_On13</incoming>
+      <outgoing>Flow_SalesPay_On14</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="Gateway_SalesPay_OnMerge">
+      <incoming>Flow_SalesPay_On8</incoming>
+      <incoming>Flow_SalesPay_On14</incoming>
+      <outgoing>Flow_SalesPay_On15</outgoing>
+    </exclusiveGateway>
+    <endEvent id="EndEvent_SalesPay_OnComplete" name="Thanh toán Online&#10;hoàn tất">
+      <incoming>Flow_SalesPay_On15</incoming>
+    </endEvent>
+    <serviceTask id="Activity_SalesPay_RecordCOD" name="Ghi nhận: Chưa thanh toán">
+      <incoming>Flow_SalesPay_On9</incoming>
+      <outgoing>Flow_SalesPay_On10</outgoing>
+    </serviceTask>
+    <userTask id="Activity_SalesPay_TrackShipping" name="Theo dõi giao hàng">
+      <incoming>Flow_06e88xr</incoming>
+      <outgoing>Flow_SalesPay_On11</outgoing>
+    </userTask>
+    <sendTask id="Activity_SalesPay_RequestPacking" name="Yêu cầu nhân viên kho đóng hàng">
+      <incoming>Flow_SalesPay_On10</incoming>
+      <outgoing>Flow_06e88xr</outgoing>
+    </sendTask>
+    <sequenceFlow id="Flow_SalesPay_Off1" sourceRef="StartEvent_SalesPay_Off" targetRef="Activity_SalesPay_Announce" />
+    <sequenceFlow id="Flow_SalesPay_Off2" sourceRef="Activity_SalesPay_Announce" targetRef="Gateway_SalesPay_OffMethod" />
+    <sequenceFlow id="Flow_SalesPay_Off_Cash" name="Tiền mặt" sourceRef="Gateway_SalesPay_OffMethod" targetRef="Activity_SalesPay_ReceiveCash" />
+    <sequenceFlow id="Flow_SalesPay_Off_Transfer" name="chuyển khoản" sourceRef="Gateway_SalesPay_OffMethod" targetRef="Activity_SalesPay_ShowQR" />
+    <sequenceFlow id="Flow_SalesPay_Off3" sourceRef="Activity_SalesPay_ReceiveCash" targetRef="Activity_SalesPay_CheckCash" />
+    <sequenceFlow id="Flow_SalesPay_Off4" sourceRef="Activity_SalesPay_CheckCash" targetRef="Gateway_SalesPay_OffMerge" />
+    <sequenceFlow id="Flow_SalesPay_Off5" sourceRef="Activity_SalesPay_ShowQR" targetRef="Activity_SalesPay_ReceiveProof" />
+    <sequenceFlow id="Flow_SalesPay_Off6" sourceRef="Activity_SalesPay_ReceiveProof" targetRef="Activity_SalesPay_VerifyTransfer" />
+    <sequenceFlow id="Flow_SalesPay_Off7" sourceRef="Activity_SalesPay_VerifyTransfer" targetRef="Gateway_SalesPay_OffMerge" />
+    <sequenceFlow id="Flow_SalesPay_Off8" sourceRef="Gateway_SalesPay_OffMerge" targetRef="Activity_SalesPay_RecordOff" />
+    <sequenceFlow id="Flow_SalesPay_Off9" sourceRef="Activity_SalesPay_RecordOff" targetRef="Activity_SalesPay_ShareProof" />
+    <sequenceFlow id="Flow_SalesPay_Off10" sourceRef="Activity_SalesPay_ShareProof" targetRef="EndEvent_SalesPay_OffComplete" />
+    <sequenceFlow id="Flow_SalesPay_On1" sourceRef="StartEvent_SalesPay_On" targetRef="Activity_SalesPay_ConfirmMethod" />
+    <sequenceFlow id="Flow_SalesPay_On2" sourceRef="Activity_SalesPay_ConfirmMethod" targetRef="Gateway_SalesPay_OnMethod" />
+    <sequenceFlow id="Flow_SalesPay_On_PreTransfer" name="chuyển khoản" sourceRef="Gateway_SalesPay_OnMethod" targetRef="Activity_SalesPay_SendAccount" />
+    <sequenceFlow id="Flow_SalesPay_On_COD" name="COD" sourceRef="Gateway_SalesPay_OnMethod" targetRef="Activity_SalesPay_CreateShipping" />
+    <sequenceFlow id="Flow_SalesPay_On3" sourceRef="Activity_SalesPay_SendAccount" targetRef="Activity_SalesPay_WaitTransfer" />
+    <sequenceFlow id="Flow_SalesPay_On4" sourceRef="Activity_SalesPay_WaitTransfer" targetRef="Activity_SalesPay_ReceiveBill" />
+    <sequenceFlow id="Flow_SalesPay_On5" sourceRef="Activity_SalesPay_ReceiveBill" targetRef="Activity_SalesPay_VerifyOnline" />
+    <sequenceFlow id="Flow_SalesPay_On6" sourceRef="Activity_SalesPay_VerifyOnline" targetRef="Activity_SalesPay_ShareProofOnline" />
+    <sequenceFlow id="Flow_SalesPay_On7" sourceRef="Activity_SalesPay_ShareProofOnline" targetRef="Activity_SalesPay_UpdatePaid" />
+    <sequenceFlow id="Flow_SalesPay_On8" sourceRef="Activity_SalesPay_UpdatePaid" targetRef="Gateway_SalesPay_OnMerge" />
+    <sequenceFlow id="Flow_SalesPay_On9" sourceRef="Activity_SalesPay_CreateShipping" targetRef="Activity_SalesPay_RecordCOD" />
+    <sequenceFlow id="Flow_SalesPay_On11" sourceRef="Activity_SalesPay_TrackShipping" targetRef="Activity_SalesPay_ReceiveCODMoney" />
+    <sequenceFlow id="Flow_SalesPay_On12" sourceRef="Activity_SalesPay_ReceiveCODMoney" targetRef="Activity_SalesPay_ReconcileCOD" />
+    <sequenceFlow id="Flow_SalesPay_On13" sourceRef="Activity_SalesPay_ReconcileCOD" targetRef="Activity_SalesPay_UpdateCODPaid" />
+    <sequenceFlow id="Flow_SalesPay_On14" sourceRef="Activity_SalesPay_UpdateCODPaid" targetRef="Gateway_SalesPay_OnMerge" />
+    <sequenceFlow id="Flow_SalesPay_On15" sourceRef="Gateway_SalesPay_OnMerge" targetRef="EndEvent_SalesPay_OnComplete" />
+    <sequenceFlow id="Flow_SalesPay_On10" sourceRef="Activity_SalesPay_RecordCOD" targetRef="Activity_1kdjem7" />
+    <sequenceFlow id="Flow_06e88xr" sourceRef="Activity_1kdjem7" targetRef="Activity_SalesPay_TrackShipping" />
+  </process>
+  <process id="Process_Customer" name="Khách hàng" isExecutable="false">
+    <laneSet id="LaneSet_1ftoya1">
+      <lane id="Lane_Customer">
+        <flowNodeRef>StartEvent_Customer</flowNodeRef>
+        <flowNodeRef>Gateway_Cust_Channel</flowNodeRef>
+        <flowNodeRef>Activity_Cust_Request</flowNodeRef>
+        <flowNodeRef>Activity_Cust_ViewInfo</flowNodeRef>
+        <flowNodeRef>Activity_Cust_Select</flowNodeRef>
+        <flowNodeRef>Gateway_Cust_StockStatus</flowNodeRef>
+        <flowNodeRef>Activity_Cust_ReceiveNoStock</flowNodeRef>
+        <flowNodeRef>Gateway_Cust_Decision</flowNodeRef>
+        <flowNodeRef>Activity_Cust_ConfirmOrder</flowNodeRef>
+        <flowNodeRef>Activity_Cust_ReceiveGoods</flowNodeRef>
+        <flowNodeRef>EndEvent_Cust_Success</flowNodeRef>
+        <flowNodeRef>EndEvent_Cust_Cancel</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="StartEvent_Customer" name="Có nhu cầu mua hàng">
+      <outgoing>Flow_Cust1</outgoing>
+    </startEvent>
+    <exclusiveGateway id="Gateway_Cust_Channel" name="Kênh?">
+      <incoming>Flow_Cust1</incoming>
+      <outgoing>Flow_Cust_Offline</outgoing>
+      <outgoing>Flow_Cust_Online</outgoing>
+    </exclusiveGateway>
+    <sendTask id="Activity_Cust_Request" name="Liên hệ zalo,fb,.. / Đến shop">
+      <incoming>Flow_Cust_Offline</incoming>
+      <incoming>Flow_Cust_Online</incoming>
+      <incoming>Flow_Cust_Retry</incoming>
+      <outgoing>Flow_Cust2</outgoing>
+    </sendTask>
+    <receiveTask id="Activity_Cust_ViewInfo" name="Xem sản phẩm">
+      <incoming>Flow_Cust2</incoming>
+      <outgoing>Flow_Cust3</outgoing>
+    </receiveTask>
+    <sendTask id="Activity_Cust_Select" name="Chọn sản phẩm">
+      <incoming>Flow_Cust3</incoming>
+      <outgoing>Flow_Cust4</outgoing>
+    </sendTask>
+    <eventBasedGateway id="Gateway_Cust_StockStatus" name="Chờ phản hồi">
+      <incoming>Flow_Cust4</incoming>
+      <outgoing>Flow_Cust_ToNoStock</outgoing>
+      <outgoing>Flow_Cust_ToConfirm</outgoing>
+    </eventBasedGateway>
+    <receiveTask id="Activity_Cust_ReceiveNoStock" name="Nhận thông báo hết hàng">
+      <incoming>Flow_Cust_ToNoStock</incoming>
+      <outgoing>Flow_Cust5</outgoing>
+    </receiveTask>
+    <exclusiveGateway id="Gateway_Cust_Decision" name="Quyết định?">
+      <incoming>Flow_Cust5</incoming>
+      <outgoing>Flow_Cust_Retry</outgoing>
+      <outgoing>Flow_Cust_WaitFactory</outgoing>
+      <outgoing>Flow_Cust_Cancel</outgoing>
+    </exclusiveGateway>
+    <receiveTask id="Activity_Cust_ConfirmOrder" name="Xác nhận đơn hàng">
+      <incoming>Flow_Cust_WaitFactory</incoming>
+      <incoming>Flow_Cust_ToConfirm</incoming>
+      <outgoing>Flow_Cust6</outgoing>
+    </receiveTask>
+    <receiveTask id="Activity_Cust_ReceiveGoods" name="Nhận hàng">
+      <incoming>Flow_Cust6</incoming>
+      <outgoing>Flow_Cust7</outgoing>
+    </receiveTask>
+    <endEvent id="EndEvent_Cust_Success" name="Hoàn tất">
+      <incoming>Flow_Cust7</incoming>
+    </endEvent>
+    <endEvent id="EndEvent_Cust_Cancel" name="Hủy">
+      <incoming>Flow_Cust_Cancel</incoming>
+    </endEvent>
+    <sequenceFlow id="Flow_Cust1" sourceRef="StartEvent_Customer" targetRef="Gateway_Cust_Channel" />
+    <sequenceFlow id="Flow_Cust_Offline" name="Offline" sourceRef="Gateway_Cust_Channel" targetRef="Activity_Cust_Request" />
+    <sequenceFlow id="Flow_Cust_Online" name="Online" sourceRef="Gateway_Cust_Channel" targetRef="Activity_Cust_Request" />
+    <sequenceFlow id="Flow_Cust_Retry" name="Chọn sản phẩm khác" sourceRef="Gateway_Cust_Decision" targetRef="Activity_Cust_Request" />
+    <sequenceFlow id="Flow_Cust2" sourceRef="Activity_Cust_Request" targetRef="Activity_Cust_ViewInfo" />
+    <sequenceFlow id="Flow_Cust3" sourceRef="Activity_Cust_ViewInfo" targetRef="Activity_Cust_Select" />
+    <sequenceFlow id="Flow_Cust4" sourceRef="Activity_Cust_Select" targetRef="Gateway_Cust_StockStatus" />
+    <sequenceFlow id="Flow_Cust_ToNoStock" name="Hết hàng" sourceRef="Gateway_Cust_StockStatus" targetRef="Activity_Cust_ReceiveNoStock" />
+    <sequenceFlow id="Flow_Cust_ToConfirm" name="Có hàng" sourceRef="Gateway_Cust_StockStatus" targetRef="Activity_Cust_ConfirmOrder" />
+    <sequenceFlow id="Flow_Cust5" sourceRef="Activity_Cust_ReceiveNoStock" targetRef="Gateway_Cust_Decision" />
+    <sequenceFlow id="Flow_Cust_WaitFactory" name="Đặt xưởng" sourceRef="Gateway_Cust_Decision" targetRef="Activity_Cust_ConfirmOrder" />
+    <sequenceFlow id="Flow_Cust_Cancel" name="Hủy" sourceRef="Gateway_Cust_Decision" targetRef="EndEvent_Cust_Cancel" />
+    <sequenceFlow id="Flow_Cust6" sourceRef="Activity_Cust_ConfirmOrder" targetRef="Activity_Cust_ReceiveGoods" />
+    <sequenceFlow id="Flow_Cust7" sourceRef="Activity_Cust_ReceiveGoods" targetRef="EndEvent_Cust_Success" />
+  </process>
+  <process id="Process_Sales" name="Nhân viên bán hàng" isExecutable="false">
+    <laneSet id="LaneSet_0s6g58k">
+      <lane id="Lane_Sales" name="Nhân viên bán hàng">
+        <flowNodeRef>StartEvent_Sales</flowNodeRef>
+        <flowNodeRef>Activity_Sales_Receive</flowNodeRef>
+        <flowNodeRef>Gateway_0shacai</flowNodeRef>
+        <flowNodeRef>Activity_Sales_Consult</flowNodeRef>
+        <flowNodeRef>Activity_Sales_ReceiveSelection</flowNodeRef>
+        <flowNodeRef>Gateway_0qgw0lg</flowNodeRef>
+        <flowNodeRef>Activity_069dwvr</flowNodeRef>
+        <flowNodeRef>Activity_Sales_CheckInventory</flowNodeRef>
+        <flowNodeRef>Gateway_Sales_StockAvailable</flowNodeRef>
+        <flowNodeRef>Activity_Sales_NotifyNoStock</flowNodeRef>
+        <flowNodeRef>Gateway_Sales_CustomerChoice</flowNodeRef>
+        <flowNodeRef>Gateway_1k5hfrl</flowNodeRef>
+        <flowNodeRef>EndEvent_Sales_Cancel</flowNodeRef>
+        <flowNodeRef>Activity_Sales_Handover</flowNodeRef>
+        <flowNodeRef>Gateway_01d3o5z</flowNodeRef>
+        <flowNodeRef>EndEvent_Sales_Success</flowNodeRef>
+        <flowNodeRef>Activity_Sales_UpdateStatus</flowNodeRef>
+        <flowNodeRef>Gateway_1b0f1me</flowNodeRef>
+        <flowNodeRef>Activity_0srokh6</flowNodeRef>
+        <flowNodeRef>Activity_Sales_FactoryOrder</flowNodeRef>
+        <flowNodeRef>Activity_Sales_CollectInfo</flowNodeRef>
+        <flowNodeRef>Activity_Sales_CreateOrder</flowNodeRef>
+        <flowNodeRef>Activity_Sales_ConfirmOrder</flowNodeRef>
+        <flowNodeRef>Activity_Sales_Payment</flowNodeRef>
+        <flowNodeRef>Gateway_0nnvthh</flowNodeRef>
+        <flowNodeRef>Activity_Sales_ReceivePayment</flowNodeRef>
+        <flowNodeRef>Activity_17zcz7e</flowNodeRef>
+        <flowNodeRef>Activity_1ni1fkq</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="StartEvent_Sales" name="Tiếp nhận yêu cầu">
+      <outgoing>Flow_Sales1</outgoing>
+    </startEvent>
+    <receiveTask id="Activity_Sales_Receive" name="Tiếp nhận khách hàng">
+      <incoming>Flow_Sales1</incoming>
+      <outgoing>Flow_Sales2</outgoing>
+    </receiveTask>
+    <exclusiveGateway id="Gateway_Sales_Channel" name="Kênh?">
+      <incoming>Flow_Sales2</incoming>
+      <outgoing>Flow_Sales_Offline</outgoing>
+      <outgoing>Flow_Sales_Online</outgoing>
+    </exclusiveGateway>
+    <sendTask id="Activity_Sales_Consult" name="Tư vấn, gửi thông tin SP">
+      <incoming>Flow_Sales_Offline</incoming>
+      <incoming>Flow_Sales_Online</incoming>
+      <incoming>Flow_Sales_Reconsult</incoming>
+      <outgoing>Flow_Sales3</outgoing>
+    </sendTask>
+    <receiveTask id="Activity_Sales_ReceiveSelection" name="Nhận thông tin SP khách chọn">
+      <incoming>Flow_Sales3</incoming>
+      <outgoing>Flow_Sales4</outgoing>
+    </receiveTask>
+    <exclusiveGateway id="Gateway_Sales_CheckMethod" name="Có trên kệ?&#10;(Offline)">
+      <incoming>Flow_Sales4</incoming>
+      <outgoing>Flow_Sales_OnShelf</outgoing>
+      <outgoing>Flow_Sales_CheckWarehouse</outgoing>
+    </exclusiveGateway>
+    <manualTask id="Activity_Sales_GetFromShelf" name="Lấy hàng từ kệ">
+      <incoming>Flow_Sales_OnShelf</incoming>
+      <outgoing>Flow_Sales_FromShelf</outgoing>
+    </manualTask>
+    <callActivity id="Activity_Sales_CheckInventory" name="⚙ Kiểm tra kho&#10;(Sub-process)" calledElement="Process_1">
+      <incoming>Flow_Sales_CheckWarehouse</incoming>
+      <outgoing>Flow_Sales5</outgoing>
+    </callActivity>
+    <exclusiveGateway id="Gateway_Sales_StockAvailable" name="Có hàng?">
+      <incoming>Flow_Sales5</incoming>
+      <outgoing>Flow_Sales_HasStock</outgoing>
+      <outgoing>Flow_Sales_NoStock</outgoing>
+    </exclusiveGateway>
+    <sendTask id="Activity_Sales_NotifyNoStock" name="Thông báo hết hàng">
+      <incoming>Flow_Sales_NoStock</incoming>
+      <outgoing>Flow_Sales6</outgoing>
+    </sendTask>
+    <exclusiveGateway id="Gateway_Sales_CustomerChoice" name="Khách chọn?">
+      <incoming>Flow_Sales6</incoming>
+      <outgoing>Flow_Sales_Reconsult</outgoing>
+      <outgoing>Flow_Sales_CancelOrder</outgoing>
+      <outgoing>Flow_Sales_Factory</outgoing>
+    </exclusiveGateway>
+    <exclusiveGateway id="Gateway_1k5hfrl">
+      <incoming>Flow_0p8btkq</incoming>
+      <incoming>Flow_Sales_HasStock</incoming>
+      <incoming>Flow_18hs8vc</incoming>
+      <outgoing>Flow_06rnfh8</outgoing>
+    </exclusiveGateway>
+    <endEvent id="EndEvent_Sales_Cancel" name="Hủy đơn">
+      <incoming>Flow_Sales_CancelOrder</incoming>
+    </endEvent>
+    <sendTask id="Activity_Sales_Handover" name="Giao hàng cho khách">
+      <incoming>Flow_1ikvu0n</incoming>
+      <outgoing>Flow_Sales13</outgoing>
+    </sendTask>
+    <exclusiveGateway id="Gateway_01d3o5z">
+      <incoming>Flow_Sales12</incoming>
+      <incoming>Flow_1ylnepo</incoming>
+      <outgoing>Flow_1ikvu0n</outgoing>
+      <outgoing>Flow_1y3kefc</outgoing>
+      <outgoing>Flow_06xogrs</outgoing>
+      <outgoing>Flow_0pznc8v</outgoing>
+    </exclusiveGateway>
+    <endEvent id="EndEvent_Sales_Success" name="Hoàn tất đơn hàng">
+      <incoming>Flow_Sales14</incoming>
+      <incoming>Flow_0pznc8v</incoming>
+    </endEvent>
+    <serviceTask id="Activity_Sales_UpdateStatus" name="Cập nhật trạng thái (Excel)&#10;Cập nhật tồn kho thủ công">
+      <incoming>Flow_1ev5ugu</incoming>
+      <outgoing>Flow_Sales14</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="Gateway_1b0f1me">
+      <incoming>Flow_09no9xx</incoming>
+      <incoming>Flow_Sales13</incoming>
+      <outgoing>Flow_1ev5ugu</outgoing>
+    </exclusiveGateway>
+    <userTask id="Activity_Sales_InitiateFactory" name="Tiến hành đặt xưởng">
+      <incoming>Flow_Sales_Factory</incoming>
+      <outgoing>Flow_18hs8vc</outgoing>
+    </userTask>
+    <callActivity id="Activity_Sales_FactoryOrder" name="⚙ Đặt hàng xưởng&#10;(Sub-process)" calledElement="Process_1">
+      <incoming>Flow_06xogrs</incoming>
+      <outgoing>Flow_1v9ghhn</outgoing>
+    </callActivity>
+    <userTask id="Activity_Sales_CollectInfo" name="Thu thập thông tin KH">
+      <incoming>Flow_06rnfh8</incoming>
+      <outgoing>Flow_Sales8</outgoing>
+    </userTask>
+    <serviceTask id="Activity_Sales_CreateOrder" name="Tạo đơn hàng (Excel)">
+      <incoming>Flow_Sales8</incoming>
+      <outgoing>Flow_Sales9</outgoing>
+    </serviceTask>
+    <sendTask id="Activity_Sales_ConfirmOrder" name="Xác nhận đơn với KH">
+      <incoming>Flow_Sales9</incoming>
+      <outgoing>Flow_Sales10</outgoing>
+    </sendTask>
+    <callActivity id="Activity_Sales_Payment" name="⚙ Xử lý thanh toán&#10;(Sub-process)" calledElement="Process_Sales_Pay">
+      <incoming>Flow_Sales10</incoming>
+      <outgoing>Flow_Sales11</outgoing>
+    </callActivity>
+    <exclusiveGateway id="Gateway_0nnvthh">
+      <incoming>Flow_Sales11</incoming>
+      <outgoing>Flow_1h95f0x</outgoing>
+      <outgoing>Flow_0923uq9</outgoing>
+    </exclusiveGateway>
+    <receiveTask id="Activity_Sales_ReceivePayment" name="Nhận xác nhận thanh toán">
+      <incoming>Flow_1h95f0x</incoming>
+      <outgoing>Flow_Sales12</outgoing>
+    </receiveTask>
+    <serviceTask id="Activity_Sales_UpdateReceived" name="Cập nhật Excel: khách đã nhận hàng">
+      <incoming>Flow_0923uq9</incoming>
+      <outgoing>Flow_1ylnepo</outgoing>
+    </serviceTask>
+    <sendTask id="Activity_Sales_RequestPacking" name="Yêu cầu nhân viên kho đóng hàng">
+      <incoming>Flow_1y3kefc</incoming>
+      <incoming>Flow_1v9ghhn</incoming>
+      <outgoing>Flow_09no9xx</outgoing>
+    </sendTask>
+    <sequenceFlow id="Flow_Sales1" sourceRef="StartEvent_Sales" targetRef="Activity_Sales_Receive" />
+    <sequenceFlow id="Flow_Sales2" sourceRef="Activity_Sales_Receive" targetRef="Gateway_Sales_Channel" />
+    <sequenceFlow id="Flow_Sales_Offline" name="Offline" sourceRef="Gateway_Sales_Channel" targetRef="Activity_Sales_Consult" />
+    <sequenceFlow id="Flow_Sales_Online" name="Online" sourceRef="Gateway_Sales_Channel" targetRef="Activity_Sales_Consult" />
+    <sequenceFlow id="Flow_Sales_Reconsult" name="Chọn sản phẩm khác" sourceRef="Gateway_Sales_CustomerChoice" targetRef="Activity_Sales_Consult" />
+    <sequenceFlow id="Flow_Sales3" sourceRef="Activity_Sales_Consult" targetRef="Activity_Sales_ReceiveSelection" />
+    <sequenceFlow id="Flow_Sales4" sourceRef="Activity_Sales_ReceiveSelection" targetRef="Gateway_Sales_CheckMethod" />
+    <sequenceFlow id="Flow_Sales_OnShelf" name="Có (Offline)" sourceRef="Gateway_Sales_CheckMethod" targetRef="Activity_Sales_GetFromShelf" />
+    <sequenceFlow id="Flow_Sales_CheckWarehouse" name="Không có trên kệ hoặc mua Online" sourceRef="Gateway_Sales_CheckMethod" targetRef="Activity_Sales_CheckInventory" />
+    <sequenceFlow id="Flow_Sales_FromShelf" sourceRef="Activity_Sales_GetFromShelf" targetRef="Gateway_1k5hfrl" />
+    <sequenceFlow id="Flow_Sales5" sourceRef="Activity_Sales_CheckInventory" targetRef="Gateway_Sales_StockAvailable" />
+    <sequenceFlow id="Flow_Sales_HasStock" name="Có" sourceRef="Gateway_Sales_StockAvailable" targetRef="Gateway_1k5hfrl" />
+    <sequenceFlow id="Flow_Sales_NoStock" name="Không" sourceRef="Gateway_Sales_StockAvailable" targetRef="Activity_Sales_NotifyNoStock" />
+    <sequenceFlow id="Flow_Sales6" sourceRef="Activity_Sales_NotifyNoStock" targetRef="Gateway_Sales_CustomerChoice" />
+    <sequenceFlow id="Flow_Sales_CancelOrder" name="Hủy" sourceRef="Gateway_Sales_CustomerChoice" targetRef="EndEvent_Sales_Cancel" />
+    <sequenceFlow id="Flow_Sales_Factory" name="Đặt xưởng" sourceRef="Gateway_Sales_CustomerChoice" targetRef="Activity_0srokh6" />
+    <sequenceFlow id="Flow_18hs8vc" sourceRef="Activity_0srokh6" targetRef="Gateway_1k5hfrl" />
+    <sequenceFlow id="Flow_06rnfh8" sourceRef="Gateway_1k5hfrl" targetRef="Activity_Sales_CollectInfo" />
+    <sequenceFlow id="Flow_1ikvu0n" sourceRef="Gateway_01d3o5z" targetRef="Activity_Sales_Handover" />
+    <sequenceFlow id="Flow_Sales13" sourceRef="Activity_Sales_Handover" targetRef="Gateway_1b0f1me" />
+    <sequenceFlow id="Flow_Sales12" sourceRef="Activity_Sales_ReceivePayment" targetRef="Gateway_01d3o5z" />
+    <sequenceFlow id="Flow_1ylnepo" sourceRef="Activity_17zcz7e" targetRef="Gateway_01d3o5z" />
+    <sequenceFlow id="Flow_1y3kefc" sourceRef="Gateway_01d3o5z" targetRef="Activity_1ni1fkq" />
+    <sequenceFlow id="Flow_06xogrs" sourceRef="Gateway_01d3o5z" targetRef="Activity_Sales_FactoryOrder" />
+    <sequenceFlow id="Flow_0pznc8v" sourceRef="Gateway_01d3o5z" targetRef="EndEvent_Sales_Success" />
+    <sequenceFlow id="Flow_Sales14" sourceRef="Activity_Sales_UpdateStatus" targetRef="EndEvent_Sales_Success" />
+    <sequenceFlow id="Flow_1ev5ugu" sourceRef="Gateway_1b0f1me" targetRef="Activity_Sales_UpdateStatus" />
+    <sequenceFlow id="Flow_09no9xx" sourceRef="Activity_1ni1fkq" targetRef="Gateway_1b0f1me" />
+    <sequenceFlow id="Flow_1v9ghhn" sourceRef="Activity_Sales_FactoryOrder" targetRef="Activity_1ni1fkq" />
+    <sequenceFlow id="Flow_Sales8" sourceRef="Activity_Sales_CollectInfo" targetRef="Activity_Sales_CreateOrder" />
+    <sequenceFlow id="Flow_Sales9" sourceRef="Activity_Sales_CreateOrder" targetRef="Activity_Sales_ConfirmOrder" />
+    <sequenceFlow id="Flow_Sales10" sourceRef="Activity_Sales_ConfirmOrder" targetRef="Activity_Sales_Payment" />
+    <sequenceFlow id="Flow_Sales11" sourceRef="Activity_Sales_Payment" targetRef="Gateway_0nnvthh" />
+    <sequenceFlow id="Flow_1h95f0x" sourceRef="Gateway_0nnvthh" targetRef="Activity_Sales_ReceivePayment" />
+    <sequenceFlow id="Flow_0923uq9" sourceRef="Gateway_0nnvthh" targetRef="Activity_17zcz7e" />
+  </process>
+  <bpmndi:BPMNDiagram id="BpmnDiagram_1">
+    <bpmndi:BPMNPlane id="BpmnPlane_1" bpmnElement="Collaboration_0yenzyg">
+      <bpmndi:BPMNShape id="Participant_Customer_Pay_di" bpmnElement="Participant_Customer_Pay" isHorizontal="true">
+        <omgdc:Bounds x="160" y="2370" width="1800" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_CustomerPay_di" bpmnElement="Lane_CustomerPay" isHorizontal="true">
+        <omgdc:Bounds x="190" y="2370" width="1770" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CustPay_ReceiveAmount_di" bpmnElement="Activity_CustPay_ReceiveAmount">
+        <omgdc:Bounds x="240" y="2490" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_CustPay_Method_di" bpmnElement="Gateway_CustPay_Method" isMarkerVisible="true">
+        <omgdc:Bounds x="395" y="2505" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="424" y="2555" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CustPay_ScanQR_di" bpmnElement="Activity_CustPay_ScanQR">
+        <omgdc:Bounds x="500" y="2550" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CustPay_Transfer_di" bpmnElement="Activity_CustPay_Transfer">
+        <omgdc:Bounds x="660" y="2550" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CustPay_SendProof_di" bpmnElement="Activity_CustPay_SendProof">
+        <omgdc:Bounds x="820" y="2550" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_CustPay_OffMerge_di" bpmnElement="Gateway_CustPay_OffMerge" isMarkerVisible="true">
+        <omgdc:Bounds x="975" y="2505" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_CustPay_Complete_di" bpmnElement="EndEvent_CustPay_Complete">
+        <omgdc:Bounds x="1412" y="2512" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1389" y="2548" width="83" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CustPay_ReceiveShipping_di" bpmnElement="Activity_CustPay_ReceiveShipping">
+        <omgdc:Bounds x="1080" y="2430" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CustPay_PayShipper_di" bpmnElement="Activity_CustPay_PayShipper">
+        <omgdc:Bounds x="1250" y="2430" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_CustPay_PayCash_di" bpmnElement="Activity_CustPay_PayCash">
+        <omgdc:Bounds x="500" y="2390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_CustPay1_di" bpmnElement="Flow_CustPay1">
+        <omgdi:waypoint x="340" y="2530" />
+        <omgdi:waypoint x="395" y="2530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay_Cash_di" bpmnElement="Flow_CustPay_Cash">
+        <omgdi:waypoint x="420" y="2505" />
+        <omgdi:waypoint x="420" y="2430" />
+        <omgdi:waypoint x="500" y="2430" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="398" y="2413" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay_Transfer_di" bpmnElement="Flow_CustPay_Transfer">
+        <omgdi:waypoint x="420" y="2555" />
+        <omgdi:waypoint x="420" y="2590" />
+        <omgdi:waypoint x="500" y="2590" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="374" y="2593" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay_COD_di" bpmnElement="Flow_CustPay_COD">
+        <omgdi:waypoint x="425" y="2510" />
+        <omgdi:waypoint x="763" y="2510" />
+        <omgdi:waypoint x="763" y="2470" />
+        <omgdi:waypoint x="1080" y="2470" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="427" y="2493" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay2_di" bpmnElement="Flow_CustPay2">
+        <omgdi:waypoint x="600" y="2430" />
+        <omgdi:waypoint x="1000" y="2430" />
+        <omgdi:waypoint x="1000" y="2505" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay3_di" bpmnElement="Flow_CustPay3">
+        <omgdi:waypoint x="600" y="2590" />
+        <omgdi:waypoint x="660" y="2590" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay4_di" bpmnElement="Flow_CustPay4">
+        <omgdi:waypoint x="760" y="2590" />
+        <omgdi:waypoint x="820" y="2590" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay5_di" bpmnElement="Flow_CustPay5">
+        <omgdi:waypoint x="920" y="2590" />
+        <omgdi:waypoint x="1000" y="2590" />
+        <omgdi:waypoint x="1000" y="2555" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay6_di" bpmnElement="Flow_CustPay6">
+        <omgdi:waypoint x="1025" y="2530" />
+        <omgdi:waypoint x="1412" y="2530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay7_di" bpmnElement="Flow_CustPay7">
+        <omgdi:waypoint x="1180" y="2450" />
+        <omgdi:waypoint x="1250" y="2450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CustPay8_di" bpmnElement="Flow_CustPay8">
+        <omgdi:waypoint x="1350" y="2450" />
+        <omgdi:waypoint x="1412" y="2450" />
+        <omgdi:waypoint x="1412" y="2530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_1yadgvv" bpmnElement="Participant_Customer" isHorizontal="true">
+        <omgdc:Bounds x="160" y="80" width="2200" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1e6pk7m" bpmnElement="Lane_Customer" isHorizontal="true">
+        <omgdc:Bounds x="190" y="80" width="2170" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1x75yod" bpmnElement="StartEvent_Customer">
+        <omgdc:Bounds x="242" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="220" y="248" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0o8bj7h" bpmnElement="Gateway_Cust_Channel" isMarkerVisible="true">
+        <omgdc:Bounds x="335" y="205" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="395" y="223" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0m6rvyu" bpmnElement="Activity_Cust_Request">
+        <omgdc:Bounds x="440" y="190" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1y5cj63" bpmnElement="Activity_Cust_ViewInfo">
+        <omgdc:Bounds x="590" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1v7m0ma" bpmnElement="Activity_Cust_Select">
+        <omgdc:Bounds x="740" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1pw1gie" bpmnElement="Activity_Cust_ReceiveNoStock">
+        <omgdc:Bounds x="890" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_19ihtaa" bpmnElement="Gateway_Cust_Decision" isMarkerVisible="true">
+        <omgdc:Bounds x="1045" y="205" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1006" y="248" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0p84f3l" bpmnElement="Activity_Cust_ConfirmOrder">
+        <omgdc:Bounds x="1150" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1etxup1" bpmnElement="Activity_Cust_ReceiveGoods">
+        <omgdc:Bounds x="1300" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1gq4iig" bpmnElement="EndEvent_Cust_Success">
+        <omgdc:Bounds x="1462" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1459" y="248" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_150c192" bpmnElement="EndEvent_Cust_Cancel">
+        <omgdc:Bounds x="1052" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1060" y="348" width="21" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_15mke1r" bpmnElement="Flow_Cust1">
+        <omgdi:waypoint x="278" y="230" />
+        <omgdi:waypoint x="335" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0imud67" bpmnElement="Flow_Cust_Offline">
+        <omgdi:waypoint x="360" y="205" />
+        <omgdi:waypoint x="360" y="180" />
+        <omgdi:waypoint x="460" y="180" />
+        <omgdi:waypoint x="460" y="190" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="394" y="155" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_09y7ydh" bpmnElement="Flow_Cust_Online">
+        <omgdi:waypoint x="360" y="255" />
+        <omgdi:waypoint x="360" y="280" />
+        <omgdi:waypoint x="460" y="280" />
+        <omgdi:waypoint x="460" y="270" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="394" y="293" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1yqicxc" bpmnElement="Flow_Cust_Retry">
+        <omgdi:waypoint x="1070" y="205" />
+        <omgdi:waypoint x="1070" y="120" />
+        <omgdi:waypoint x="510" y="120" />
+        <omgdi:waypoint x="510" y="190" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="752" y="95" width="78" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1jl2044" bpmnElement="Flow_Cust2">
+        <omgdi:waypoint x="540" y="230" />
+        <omgdi:waypoint x="590" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1ndol6j" bpmnElement="Flow_Cust3">
+        <omgdi:waypoint x="690" y="230" />
+        <omgdi:waypoint x="740" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1tg2qjr" bpmnElement="Flow_Cust4">
+        <omgdi:waypoint x="840" y="230" />
+        <omgdi:waypoint x="890" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1o53wzx" bpmnElement="Flow_Cust5">
+        <omgdi:waypoint x="990" y="230" />
+        <omgdi:waypoint x="1045" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1o73aq9" bpmnElement="Flow_Cust_WaitFactory">
+        <omgdi:waypoint x="1095" y="230" />
+        <omgdi:waypoint x="1150" y="230" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1094" y="205" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0zorhyn" bpmnElement="Flow_Cust_Cancel">
+        <omgdi:waypoint x="1070" y="255" />
+        <omgdi:waypoint x="1070" y="312" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1079" y="293" width="21" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_152cpxe" bpmnElement="Flow_Cust6">
+        <omgdi:waypoint x="1250" y="230" />
+        <omgdi:waypoint x="1300" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1r6jl2z" bpmnElement="Flow_Cust7">
+        <omgdi:waypoint x="1400" y="230" />
+        <omgdi:waypoint x="1462" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_046dfmy" bpmnElement="Participant_Sales" isHorizontal="true">
+        <omgdc:Bounds x="160" y="420" width="3440" height="420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_09vcbxz" bpmnElement="Lane_Sales" isHorizontal="true">
+        <omgdc:Bounds x="190" y="420" width="3410" height="420" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1he96qm" bpmnElement="StartEvent_Sales">
+        <omgdc:Bounds x="242" y="552" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="215" y="588" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0ql10iu" bpmnElement="Activity_Sales_Receive">
+        <omgdc:Bounds x="330" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_10mlszw" bpmnElement="Gateway_0shacai" isMarkerVisible="true">
+        <omgdc:Bounds x="485" y="545" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="474" y="608" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1jd9tqr" bpmnElement="Activity_Sales_Consult">
+        <omgdc:Bounds x="590" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_05hom8j" bpmnElement="Activity_Sales_ReceiveSelection">
+        <omgdc:Bounds x="740" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0qx5i9a" bpmnElement="Gateway_0qgw0lg" isMarkerVisible="true">
+        <omgdc:Bounds x="895" y="545" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="861" y="595" width="57" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0p18lkj" bpmnElement="Activity_069dwvr">
+        <omgdc:Bounds x="1000" y="480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0y2cb0i" bpmnElement="Activity_Sales_CheckInventory">
+        <omgdc:Bounds x="1000" y="600" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0jxp211" bpmnElement="Gateway_Sales_StockAvailable" isMarkerVisible="true">
+        <omgdc:Bounds x="1155" y="615" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1156" y="595" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1561jt9" bpmnElement="Activity_Sales_NotifyNoStock">
+        <omgdc:Bounds x="1260" y="680" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1uudn4r" bpmnElement="Gateway_Sales_CustomerChoice" isMarkerVisible="true">
+        <omgdc:Bounds x="1415" y="695" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1408" y="745" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0tgoe6t" bpmnElement="Gateway_1k5hfrl" isMarkerVisible="true">
+        <omgdc:Bounds x="1995" y="545" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1dfl5yv" bpmnElement="EndEvent_Sales_Cancel">
+        <omgdc:Bounds x="1452" y="462" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1448" y="443" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0u3iodx" bpmnElement="Activity_Sales_Handover">
+        <omgdc:Bounds x="3000" y="530" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_01d3o5z_di" bpmnElement="Gateway_01d3o5z" isMarkerVisible="true">
+        <omgdc:Bounds x="2865" y="545" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1jj3ou1" bpmnElement="EndEvent_Sales_Success">
+        <omgdc:Bounds x="3452" y="552" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="3437" y="598" width="65" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0nppms1" bpmnElement="Activity_Sales_UpdateStatus">
+        <omgdc:Bounds x="3280" y="530" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1b0f1me_di" bpmnElement="Gateway_1b0f1me" isMarkerVisible="true">
+        <omgdc:Bounds x="3165" y="545" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0srokh6_di" bpmnElement="Activity_0srokh6">
+        <omgdc:Bounds x="1690" y="680" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0qbw57w" bpmnElement="Activity_Sales_FactoryOrder">
+        <omgdc:Bounds x="2800" y="740" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0amdrac" bpmnElement="Activity_Sales_CollectInfo">
+        <omgdc:Bounds x="2070" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1jh4ob6" bpmnElement="Activity_Sales_CreateOrder">
+        <omgdc:Bounds x="2190" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1wuoi98" bpmnElement="Activity_Sales_ConfirmOrder">
+        <omgdc:Bounds x="2320" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0dfbj1d" bpmnElement="Activity_Sales_Payment">
+        <omgdc:Bounds x="2440" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0nnvthh_di" bpmnElement="Gateway_0nnvthh" isMarkerVisible="true">
+        <omgdc:Bounds x="2565" y="545" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1u652y0" bpmnElement="Activity_Sales_ReceivePayment">
+        <omgdc:Bounds x="2640" y="530" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_17zcz7e_di" bpmnElement="Activity_17zcz7e">
+        <omgdc:Bounds x="2640" y="640" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ni1fkq_di" bpmnElement="Activity_1ni1fkq">
+        <omgdc:Bounds x="3000" y="630" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_18xpimr" bpmnElement="Flow_Sales1">
+        <omgdi:waypoint x="278" y="570" />
+        <omgdi:waypoint x="330" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0qftlcw" bpmnElement="Flow_Sales2">
+        <omgdi:waypoint x="430" y="570" />
+        <omgdi:waypoint x="485" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0ji5rs8" bpmnElement="Flow_1n1z7f8">
+        <omgdi:waypoint x="510" y="545" />
+        <omgdi:waypoint x="510" y="520" />
+        <omgdi:waypoint x="640" y="520" />
+        <omgdi:waypoint x="640" y="530" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="559" y="495" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0h2mgl6" bpmnElement="Flow_09f7aa9">
+        <omgdi:waypoint x="510" y="595" />
+        <omgdi:waypoint x="510" y="620" />
+        <omgdi:waypoint x="640" y="620" />
+        <omgdi:waypoint x="640" y="610" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="559" y="633" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0w5dkvf" bpmnElement="Flow_Sales_Reconsult">
+        <omgdi:waypoint x="1440" y="695" />
+        <omgdi:waypoint x="1440" y="460" />
+        <omgdi:waypoint x="680" y="460" />
+        <omgdi:waypoint x="680" y="530" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1022" y="435" width="78" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1i98yj0" bpmnElement="Flow_Sales3">
+        <omgdi:waypoint x="690" y="570" />
+        <omgdi:waypoint x="740" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_08oslzw" bpmnElement="Flow_Sales4">
+        <omgdi:waypoint x="840" y="570" />
+        <omgdi:waypoint x="895" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0jirdwt" bpmnElement="Flow_145om2p">
+        <omgdi:waypoint x="920" y="545" />
+        <omgdi:waypoint x="920" y="520" />
+        <omgdi:waypoint x="1000" y="520" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="881" y="503" width="57" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1je8ikn" bpmnElement="Flow_13yy2hr">
+        <omgdi:waypoint x="920" y="595" />
+        <omgdi:waypoint x="920" y="640" />
+        <omgdi:waypoint x="1000" y="640" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="888" y="653" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0ebqhn3" bpmnElement="Flow_0p8btkq">
+        <omgdi:waypoint x="1100" y="520" />
+        <omgdi:waypoint x="2020" y="520" />
+        <omgdi:waypoint x="2020" y="545" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0volp7a" bpmnElement="Flow_Sales5">
+        <omgdi:waypoint x="1100" y="640" />
+        <omgdi:waypoint x="1155" y="640" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0p4goxe" bpmnElement="Flow_Sales_HasStock">
+        <omgdi:waypoint x="1205" y="640" />
+        <omgdi:waypoint x="2010" y="640" />
+        <omgdi:waypoint x="2010" y="585" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1212" y="615" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0dgf753" bpmnElement="Flow_Sales_NoStock">
+        <omgdi:waypoint x="1180" y="665" />
+        <omgdi:waypoint x="1180" y="720" />
+        <omgdi:waypoint x="1260" y="720" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1179" y="683" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1dhseaq" bpmnElement="Flow_Sales6">
+        <omgdi:waypoint x="1360" y="720" />
+        <omgdi:waypoint x="1415" y="720" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0wlqsl9" bpmnElement="Flow_Sales_Factory">
+        <omgdi:waypoint x="1465" y="720" />
+        <omgdi:waypoint x="1690" y="720" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1484" y="695" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0b7r2r4" bpmnElement="Flow_Sales_CancelOrder">
+        <omgdi:waypoint x="1460" y="715" />
+        <omgdi:waypoint x="1460" y="597" />
+        <omgdi:waypoint x="1470" y="597" />
+        <omgdi:waypoint x="1470" y="498" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1489" y="495" width="21" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0b4olud" bpmnElement="Flow_06rnfh8">
+        <omgdi:waypoint x="2045" y="570" />
+        <omgdi:waypoint x="2070" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0q8mzyz" bpmnElement="Flow_Sales8">
+        <omgdi:waypoint x="2170" y="570" />
+        <omgdi:waypoint x="2190" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1ga3p6u" bpmnElement="Flow_Sales9">
+        <omgdi:waypoint x="2290" y="570" />
+        <omgdi:waypoint x="2320" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0o167wi" bpmnElement="Flow_Sales10">
+        <omgdi:waypoint x="2420" y="570" />
+        <omgdi:waypoint x="2440" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0joqj27" bpmnElement="Flow_Sales11">
+        <omgdi:waypoint x="2540" y="570" />
+        <omgdi:waypoint x="2565" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0g7bgl5" bpmnElement="Flow_Sales12">
+        <omgdi:waypoint x="2740" y="570" />
+        <omgdi:waypoint x="2865" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0gbmdmm" bpmnElement="Flow_Sales13">
+        <omgdi:waypoint x="3100" y="570" />
+        <omgdi:waypoint x="3165" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1uaes4a" bpmnElement="Flow_Sales14">
+        <omgdi:waypoint x="3380" y="570" />
+        <omgdi:waypoint x="3452" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ikvu0n_di" bpmnElement="Flow_1ikvu0n">
+        <omgdi:waypoint x="2915" y="570" />
+        <omgdi:waypoint x="3000" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1y3kefc_di" bpmnElement="Flow_1y3kefc">
+        <omgdi:waypoint x="2890" y="595" />
+        <omgdi:waypoint x="2890" y="670" />
+        <omgdi:waypoint x="3000" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09no9xx_di" bpmnElement="Flow_09no9xx">
+        <omgdi:waypoint x="3100" y="670" />
+        <omgdi:waypoint x="3190" y="670" />
+        <omgdi:waypoint x="3190" y="595" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ev5ugu_di" bpmnElement="Flow_1ev5ugu">
+        <omgdi:waypoint x="3215" y="570" />
+        <omgdi:waypoint x="3280" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18hs8vc_di" bpmnElement="Flow_18hs8vc">
+        <omgdi:waypoint x="1790" y="720" />
+        <omgdi:waypoint x="2020" y="720" />
+        <omgdi:waypoint x="2020" y="595" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06xogrs_di" bpmnElement="Flow_06xogrs">
+        <omgdi:waypoint x="2870" y="575" />
+        <omgdi:waypoint x="2870" y="740" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1v9ghhn_di" bpmnElement="Flow_1v9ghhn">
+        <omgdi:waypoint x="2900" y="780" />
+        <omgdi:waypoint x="2950" y="780" />
+        <omgdi:waypoint x="2950" y="700" />
+        <omgdi:waypoint x="3000" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1h95f0x_di" bpmnElement="Flow_1h95f0x">
+        <omgdi:waypoint x="2615" y="570" />
+        <omgdi:waypoint x="2640" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0923uq9_di" bpmnElement="Flow_0923uq9">
+        <omgdi:waypoint x="2590" y="595" />
+        <omgdi:waypoint x="2590" y="680" />
+        <omgdi:waypoint x="2640" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ylnepo_di" bpmnElement="Flow_1ylnepo">
+        <omgdi:waypoint x="2740" y="680" />
+        <omgdi:waypoint x="2890" y="680" />
+        <omgdi:waypoint x="2890" y="595" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0pznc8v_di" bpmnElement="Flow_0pznc8v">
+        <omgdi:waypoint x="2890" y="545" />
+        <omgdi:waypoint x="2890" y="500" />
+        <omgdi:waypoint x="3470" y="500" />
+        <omgdi:waypoint x="3470" y="552" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_WarehouseStaff_di" bpmnElement="Participant_WarehouseStaff" isHorizontal="true">
+        <omgdc:Bounds x="160" y="1020" width="2400" height="900" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Reconcile_di" bpmnElement="Lane_Reconcile" isHorizontal="true">
+        <omgdc:Bounds x="190" y="1670" width="2370" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_FactoryOrder_di" bpmnElement="Lane_FactoryOrder" isHorizontal="true">
+        <omgdc:Bounds x="190" y="1420" width="2370" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Receiving_di" bpmnElement="Lane_Receiving" isHorizontal="true">
+        <omgdc:Bounds x="190" y="1220" width="2370" height="200" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_StockCheck_di" bpmnElement="Lane_StockCheck" isHorizontal="true">
+        <omgdc:Bounds x="190" y="1020" width="2370" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_ReceiveRequest_di" bpmnElement="Activity_WH_ReceiveRequest">
+        <omgdc:Bounds x="240" y="1070" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_CheckExcel_di" bpmnElement="Activity_WH_CheckExcel">
+        <omgdc:Bounds x="390" y="1070" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_ExcelStock_di" bpmnElement="Gateway_WH_ExcelStock" isMarkerVisible="true">
+        <omgdc:Bounds x="545" y="1085" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="514" y="1135" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_SearchWarehouse_di" bpmnElement="Activity_WH_SearchWarehouse">
+        <omgdc:Bounds x="650" y="1070" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_Found_di" bpmnElement="Gateway_WH_Found" isMarkerVisible="true">
+        <omgdc:Bounds x="805" y="1085" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="776" y="1135" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_PickGoods_di" bpmnElement="Activity_WH_PickGoods">
+        <omgdc:Bounds x="910" y="1070" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_Channel_di" bpmnElement="Gateway_WH_Channel" isMarkerVisible="true">
+        <omgdc:Bounds x="1065" y="1085" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1033" y="1135" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_HandoverSales_di" bpmnElement="Activity_WH_HandoverSales">
+        <omgdc:Bounds x="1170" y="1040" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_WH_NoStock_di" bpmnElement="EndEvent_WH_NoStock">
+        <omgdc:Bounds x="812" y="1172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="793" y="1208" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_WH_Receive_di" bpmnElement="StartEvent_WH_Receive">
+        <omgdc:Bounds x="242" y="1292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="226" y="1328" width="68" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_ReceiveGoods_di" bpmnElement="Activity_WH_ReceiveGoods">
+        <omgdc:Bounds x="330" y="1270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_Inspect_di" bpmnElement="Activity_WH_Inspect">
+        <omgdc:Bounds x="490" y="1270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_InspectResult_di" bpmnElement="Gateway_WH_InspectResult" isMarkerVisible="true">
+        <omgdc:Bounds x="645" y="1285" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="611" y="1343" width="57" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_NoteIssue_di" bpmnElement="Activity_WH_NoteIssue">
+        <omgdc:Bounds x="750" y="1350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_IssueMerge_di" bpmnElement="Gateway_WH_IssueMerge" isMarkerVisible="true">
+        <omgdc:Bounds x="905" y="1285" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_UpdateStockIn_di" bpmnElement="Activity_WH_UpdateStockIn">
+        <omgdc:Bounds x="1010" y="1270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_Store_di" bpmnElement="Activity_WH_Store">
+        <omgdc:Bounds x="1170" y="1270" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_WH_ReceiveComplete_di" bpmnElement="EndEvent_WH_ReceiveComplete">
+        <omgdc:Bounds x="1332" y="1292" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1313" y="1328" width="75" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_WH_Factory_di" bpmnElement="StartEvent_WH_Factory">
+        <omgdc:Bounds x="242" y="1502" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="231" y="1538" width="59" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_RecordFactoryOrder_di" bpmnElement="Activity_WH_RecordFactoryOrder">
+        <omgdc:Bounds x="330" y="1480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_ContactFactory_di" bpmnElement="Activity_WH_ContactFactory">
+        <omgdc:Bounds x="490" y="1480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_PlaceFactoryOrder_di" bpmnElement="Activity_WH_PlaceFactoryOrder">
+        <omgdc:Bounds x="650" y="1480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_WaitFactory_di" bpmnElement="Activity_WH_WaitFactory">
+        <omgdc:Bounds x="810" y="1480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_ReceiveFactory_di" bpmnElement="Activity_WH_ReceiveFactory">
+        <omgdc:Bounds x="970" y="1480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_InspectFactory_di" bpmnElement="Activity_WH_InspectFactory">
+        <omgdc:Bounds x="1130" y="1480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_FactoryOK_di" bpmnElement="Gateway_WH_FactoryOK" isMarkerVisible="true">
+        <omgdc:Bounds x="1285" y="1495" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1238" y="1553" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_NoteFactoryIssue_di" bpmnElement="Activity_WH_NoteFactoryIssue">
+        <omgdc:Bounds x="1390" y="1580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_FactoryMerge_di" bpmnElement="Gateway_WH_FactoryMerge" isMarkerVisible="true">
+        <omgdc:Bounds x="1545" y="1495" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_WH_Reconcile_di" bpmnElement="StartEvent_WH_Reconcile">
+        <omgdc:Bounds x="242" y="1752" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="235" y="1788" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_CheckSoldOrders_di" bpmnElement="Activity_WH_CheckSoldOrders">
+        <omgdc:Bounds x="330" y="1730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_ReconcileStock_di" bpmnElement="Activity_WH_ReconcileStock">
+        <omgdc:Bounds x="490" y="1730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_HasError_di" bpmnElement="Gateway_WH_HasError" isMarkerVisible="true">
+        <omgdc:Bounds x="645" y="1745" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="642" y="1795" width="56" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_CorrectExcel_di" bpmnElement="Activity_WH_CorrectExcel">
+        <omgdc:Bounds x="750" y="1830" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_ErrorMerge_di" bpmnElement="Gateway_WH_ErrorMerge" isMarkerVisible="true">
+        <omgdc:Bounds x="905" y="1745" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_StockLevel_di" bpmnElement="Gateway_WH_StockLevel" isMarkerVisible="true">
+        <omgdc:Bounds x="1010" y="1745" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1012" y="1795" width="47" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_OrderMore_di" bpmnElement="Activity_WH_OrderMore">
+        <omgdc:Bounds x="1115" y="1830" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_StockMerge_di" bpmnElement="Gateway_WH_StockMerge" isMarkerVisible="true">
+        <omgdc:Bounds x="1270" y="1745" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_WH_ReconcileComplete_di" bpmnElement="EndEvent_WH_ReconcileComplete">
+        <omgdc:Bounds x="1377" y="1752" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1353" y="1788" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_NotifyReady_di" bpmnElement="Activity_WH_NotifyReady">
+        <omgdc:Bounds x="1710" y="1480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_WH_FactoryComplete_di" bpmnElement="EndEvent_WH_FactoryComplete">
+        <omgdc:Bounds x="1892" y="1502" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1870" y="1538" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_Package_di" bpmnElement="Activity_WH_Package">
+        <omgdc:Bounds x="1140" y="1140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1donkhs_di" bpmnElement="Activity_1donkhs">
+        <omgdc:Bounds x="1260" y="1140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_WH_CheckComplete_di" bpmnElement="EndEvent_WH_CheckComplete">
+        <omgdc:Bounds x="1802" y="1092" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1783" y="1128" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_WH_ChannelMerge_di" bpmnElement="Gateway_WH_ChannelMerge" isMarkerVisible="true">
+        <omgdc:Bounds x="1505" y="1085" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1i92k9w_di" bpmnElement="Activity_1i92k9w">
+        <omgdc:Bounds x="1390" y="1140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_WH_UpdateStockOut_di" bpmnElement="Activity_WH_UpdateStockOut">
+        <omgdc:Bounds x="1630" y="1070" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_WH_C1_di" bpmnElement="Flow_WH_C1">
+        <omgdi:waypoint x="340" y="1110" />
+        <omgdi:waypoint x="390" y="1110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C2_di" bpmnElement="Flow_WH_C2">
+        <omgdi:waypoint x="490" y="1110" />
+        <omgdi:waypoint x="545" y="1110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C_ExcelYes_di" bpmnElement="Flow_WH_C_ExcelYes">
+        <omgdi:waypoint x="595" y="1110" />
+        <omgdi:waypoint x="650" y="1110" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="615" y="1085" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C_ExcelNo_di" bpmnElement="Flow_WH_C_ExcelNo">
+        <omgdi:waypoint x="570" y="1135" />
+        <omgdi:waypoint x="570" y="1190" />
+        <omgdi:waypoint x="812" y="1190" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="574" y="1163" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C3_di" bpmnElement="Flow_WH_C3">
+        <omgdi:waypoint x="750" y="1110" />
+        <omgdi:waypoint x="805" y="1110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C_Found_di" bpmnElement="Flow_WH_C_Found">
+        <omgdi:waypoint x="855" y="1110" />
+        <omgdi:waypoint x="910" y="1110" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="875" y="1085" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C_NotFound_di" bpmnElement="Flow_WH_C_NotFound">
+        <omgdi:waypoint x="830" y="1135" />
+        <omgdi:waypoint x="830" y="1172" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="854" y="1173" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C4_di" bpmnElement="Flow_WH_C4">
+        <omgdi:waypoint x="1010" y="1110" />
+        <omgdi:waypoint x="1065" y="1110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C_Offline_di" bpmnElement="Flow_WH_C_Offline">
+        <omgdi:waypoint x="1090" y="1085" />
+        <omgdi:waypoint x="1090" y="1080" />
+        <omgdi:waypoint x="1170" y="1080" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1089" y="1063" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C_Online_di" bpmnElement="Flow_WH_C_Online">
+        <omgdi:waypoint x="1090" y="1135" />
+        <omgdi:waypoint x="1090" y="1180" />
+        <omgdi:waypoint x="1140" y="1180" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1093" y="1163" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C5_di" bpmnElement="Flow_WH_C5">
+        <omgdi:waypoint x="1270" y="1080" />
+        <omgdi:waypoint x="1388" y="1080" />
+        <omgdi:waypoint x="1388" y="1110" />
+        <omgdi:waypoint x="1505" y="1110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_C7_di" bpmnElement="Flow_WH_C7">
+        <omgdi:waypoint x="1555" y="1110" />
+        <omgdi:waypoint x="1630" y="1110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_08n08fl_di" bpmnElement="Flow_08n08fl">
+        <omgdi:waypoint x="1730" y="1110" />
+        <omgdi:waypoint x="1802" y="1110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R1_di" bpmnElement="Flow_WH_R1">
+        <omgdi:waypoint x="278" y="1310" />
+        <omgdi:waypoint x="330" y="1310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R2_di" bpmnElement="Flow_WH_R2">
+        <omgdi:waypoint x="430" y="1310" />
+        <omgdi:waypoint x="490" y="1310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R3_di" bpmnElement="Flow_WH_R3">
+        <omgdi:waypoint x="590" y="1310" />
+        <omgdi:waypoint x="645" y="1310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R_OK_di" bpmnElement="Flow_WH_R_OK">
+        <omgdi:waypoint x="695" y="1310" />
+        <omgdi:waypoint x="905" y="1310" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="784" y="1285" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R_Issue_di" bpmnElement="Flow_WH_R_Issue">
+        <omgdi:waypoint x="670" y="1335" />
+        <omgdi:waypoint x="670" y="1390" />
+        <omgdi:waypoint x="750" y="1390" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="678" y="1353" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R4_di" bpmnElement="Flow_WH_R4">
+        <omgdi:waypoint x="850" y="1390" />
+        <omgdi:waypoint x="930" y="1390" />
+        <omgdi:waypoint x="930" y="1335" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R5_di" bpmnElement="Flow_WH_R5">
+        <omgdi:waypoint x="955" y="1310" />
+        <omgdi:waypoint x="1010" y="1310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R6_di" bpmnElement="Flow_WH_R6">
+        <omgdi:waypoint x="1110" y="1310" />
+        <omgdi:waypoint x="1170" y="1310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_R7_di" bpmnElement="Flow_WH_R7">
+        <omgdi:waypoint x="1270" y="1310" />
+        <omgdi:waypoint x="1332" y="1310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F1_di" bpmnElement="Flow_WH_F1">
+        <omgdi:waypoint x="278" y="1520" />
+        <omgdi:waypoint x="330" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F2_di" bpmnElement="Flow_WH_F2">
+        <omgdi:waypoint x="430" y="1520" />
+        <omgdi:waypoint x="490" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F3_di" bpmnElement="Flow_WH_F3">
+        <omgdi:waypoint x="590" y="1520" />
+        <omgdi:waypoint x="650" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F4_di" bpmnElement="Flow_WH_F4">
+        <omgdi:waypoint x="750" y="1520" />
+        <omgdi:waypoint x="810" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F5_di" bpmnElement="Flow_WH_F5">
+        <omgdi:waypoint x="910" y="1520" />
+        <omgdi:waypoint x="970" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F6_di" bpmnElement="Flow_WH_F6">
+        <omgdi:waypoint x="1070" y="1520" />
+        <omgdi:waypoint x="1130" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F7_di" bpmnElement="Flow_WH_F7">
+        <omgdi:waypoint x="1230" y="1520" />
+        <omgdi:waypoint x="1285" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F_OK_di" bpmnElement="Flow_WH_F_OK">
+        <omgdi:waypoint x="1335" y="1520" />
+        <omgdi:waypoint x="1545" y="1520" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1432" y="1495" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F_Issue_di" bpmnElement="Flow_WH_F_Issue">
+        <omgdi:waypoint x="1310" y="1545" />
+        <omgdi:waypoint x="1310" y="1620" />
+        <omgdi:waypoint x="1390" y="1620" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1314" y="1593" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F8_di" bpmnElement="Flow_WH_F8">
+        <omgdi:waypoint x="1490" y="1620" />
+        <omgdi:waypoint x="1570" y="1620" />
+        <omgdi:waypoint x="1570" y="1545" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F9_di" bpmnElement="Flow_WH_F9">
+        <omgdi:waypoint x="1595" y="1520" />
+        <omgdi:waypoint x="1710" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D1_di" bpmnElement="Flow_WH_D1">
+        <omgdi:waypoint x="278" y="1770" />
+        <omgdi:waypoint x="330" y="1770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D2_di" bpmnElement="Flow_WH_D2">
+        <omgdi:waypoint x="430" y="1770" />
+        <omgdi:waypoint x="490" y="1770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D3_di" bpmnElement="Flow_WH_D3">
+        <omgdi:waypoint x="590" y="1770" />
+        <omgdi:waypoint x="645" y="1770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D_HasError_di" bpmnElement="Flow_WH_D_HasError">
+        <omgdi:waypoint x="670" y="1795" />
+        <omgdi:waypoint x="670" y="1870" />
+        <omgdi:waypoint x="750" y="1870" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="678" y="1823" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D_NoError_di" bpmnElement="Flow_WH_D_NoError">
+        <omgdi:waypoint x="695" y="1770" />
+        <omgdi:waypoint x="905" y="1770" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="784" y="1745" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D4_di" bpmnElement="Flow_WH_D4">
+        <omgdi:waypoint x="850" y="1870" />
+        <omgdi:waypoint x="930" y="1870" />
+        <omgdi:waypoint x="930" y="1795" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D5_di" bpmnElement="Flow_WH_D5">
+        <omgdi:waypoint x="955" y="1770" />
+        <omgdi:waypoint x="1010" y="1770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D_Low_di" bpmnElement="Flow_WH_D_Low">
+        <omgdi:waypoint x="1035" y="1795" />
+        <omgdi:waypoint x="1035" y="1870" />
+        <omgdi:waypoint x="1115" y="1870" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1038" y="1823" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D_Enough_di" bpmnElement="Flow_WH_D_Enough">
+        <omgdi:waypoint x="1060" y="1770" />
+        <omgdi:waypoint x="1270" y="1770" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1158" y="1745" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D6_di" bpmnElement="Flow_WH_D6">
+        <omgdi:waypoint x="1215" y="1870" />
+        <omgdi:waypoint x="1295" y="1870" />
+        <omgdi:waypoint x="1295" y="1795" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_D7_di" bpmnElement="Flow_WH_D7">
+        <omgdi:waypoint x="1320" y="1770" />
+        <omgdi:waypoint x="1377" y="1770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_WH_F11_di" bpmnElement="Flow_WH_F11">
+        <omgdi:waypoint x="1810" y="1520" />
+        <omgdi:waypoint x="1892" y="1520" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0c2ya7v_di" bpmnElement="Flow_0c2ya7v">
+        <omgdi:waypoint x="1240" y="1180" />
+        <omgdi:waypoint x="1260" y="1180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0v2suf5_di" bpmnElement="Flow_0v2suf5">
+        <omgdi:waypoint x="1360" y="1180" />
+        <omgdi:waypoint x="1390" y="1180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1t48542_di" bpmnElement="Flow_1t48542">
+        <omgdi:waypoint x="1490" y="1180" />
+        <omgdi:waypoint x="1530" y="1180" />
+        <omgdi:waypoint x="1530" y="1135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_Factory_di" bpmnElement="Participant_Factory" isHorizontal="true">
+        <omgdc:Bounds x="160" y="2230" width="800" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_Sales_Inv_di" bpmnElement="Participant_Sales_Inv" isHorizontal="true">
+        <omgdc:Bounds x="160" y="2020" width="800" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_Sales_RequestStock_di" bpmnElement="Activity_Sales_RequestStock">
+        <omgdc:Bounds x="240" y="2060" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_Sales_ReceiveResult_di" bpmnElement="Activity_Sales_ReceiveResult">
+        <omgdc:Bounds x="400" y="2060" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_SalesInv_di" bpmnElement="EndEvent_SalesInv">
+        <omgdc:Bounds x="722" y="2082" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="719" y="2118" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_Sales_ReceiveNotify_di" bpmnElement="Activity_Sales_ReceiveNotify">
+        <omgdc:Bounds x="820" y="2060" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_SalesInv1_di" bpmnElement="Flow_SalesInv1">
+        <omgdi:waypoint x="340" y="2100" />
+        <omgdi:waypoint x="400" y="2100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09cwawk_di" bpmnElement="Flow_09cwawk">
+        <omgdi:waypoint x="500" y="2100" />
+        <omgdi:waypoint x="722" y="2100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesInv3_di" bpmnElement="Flow_SalesInv3">
+        <omgdi:waypoint x="820" y="2100" />
+        <omgdi:waypoint x="758" y="2100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_Sales_Pay_di" bpmnElement="Participant_Sales_Pay" isHorizontal="true">
+        <omgdc:Bounds x="160" y="2690" width="2400" height="660" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_SalesPay_Online_di" bpmnElement="Lane_SalesPay_Online" isHorizontal="true">
+        <omgdc:Bounds x="190" y="2940" width="2370" height="410" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_SalesPay_Offline_di" bpmnElement="Lane_SalesPay_Offline" isHorizontal="true">
+        <omgdc:Bounds x="190" y="2690" width="2370" height="250" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_SalesPay_Off_di" bpmnElement="StartEvent_SalesPay_Off">
+        <omgdc:Bounds x="242" y="2797" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="222" y="2833" width="77" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_Announce_di" bpmnElement="Activity_SalesPay_Announce">
+        <omgdc:Bounds x="330" y="2775" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_SalesPay_OffMethod_di" bpmnElement="Gateway_SalesPay_OffMethod" isMarkerVisible="true">
+        <omgdc:Bounds x="485" y="2790" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="434" y="2840" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ReceiveCash_di" bpmnElement="Activity_SalesPay_ReceiveCash">
+        <omgdc:Bounds x="590" y="2730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_CheckCash_di" bpmnElement="Activity_SalesPay_CheckCash">
+        <omgdc:Bounds x="750" y="2730" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ShowQR_di" bpmnElement="Activity_SalesPay_ShowQR">
+        <omgdc:Bounds x="590" y="2850" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ReceiveProof_di" bpmnElement="Activity_SalesPay_ReceiveProof">
+        <omgdc:Bounds x="750" y="2850" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_VerifyTransfer_di" bpmnElement="Activity_SalesPay_VerifyTransfer">
+        <omgdc:Bounds x="910" y="2850" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_SalesPay_OffMerge_di" bpmnElement="Gateway_SalesPay_OffMerge" isMarkerVisible="true">
+        <omgdc:Bounds x="1065" y="2790" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_RecordOff_di" bpmnElement="Activity_SalesPay_RecordOff">
+        <omgdc:Bounds x="1170" y="2775" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ShareProof_di" bpmnElement="Activity_SalesPay_ShareProof">
+        <omgdc:Bounds x="1330" y="2775" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_SalesPay_OffComplete_di" bpmnElement="EndEvent_SalesPay_OffComplete">
+        <omgdc:Bounds x="1492" y="2797" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1465" y="2833" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_SalesPay_On_di" bpmnElement="StartEvent_SalesPay_On">
+        <omgdc:Bounds x="242" y="3047" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="222" y="3083" width="77" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ConfirmMethod_di" bpmnElement="Activity_SalesPay_ConfirmMethod">
+        <omgdc:Bounds x="330" y="3025" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_SalesPay_OnMethod_di" bpmnElement="Gateway_SalesPay_OnMethod" isMarkerVisible="true">
+        <omgdc:Bounds x="485" y="3040" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="434" y="3090" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_SendAccount_di" bpmnElement="Activity_SalesPay_SendAccount">
+        <omgdc:Bounds x="590" y="2980" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_WaitTransfer_di" bpmnElement="Activity_SalesPay_WaitTransfer">
+        <omgdc:Bounds x="750" y="2980" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ReceiveBill_di" bpmnElement="Activity_SalesPay_ReceiveBill">
+        <omgdc:Bounds x="910" y="2980" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_VerifyOnline_di" bpmnElement="Activity_SalesPay_VerifyOnline">
+        <omgdc:Bounds x="1070" y="2980" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ShareProofOnline_di" bpmnElement="Activity_SalesPay_ShareProofOnline">
+        <omgdc:Bounds x="1230" y="2980" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_UpdatePaid_di" bpmnElement="Activity_SalesPay_UpdatePaid">
+        <omgdc:Bounds x="1390" y="2980" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_CreateShipping_di" bpmnElement="Activity_SalesPay_CreateShipping">
+        <omgdc:Bounds x="590" y="3100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ReceiveCODMoney_di" bpmnElement="Activity_SalesPay_ReceiveCODMoney">
+        <omgdc:Bounds x="1070" y="3100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_ReconcileCOD_di" bpmnElement="Activity_SalesPay_ReconcileCOD">
+        <omgdc:Bounds x="1230" y="3100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_UpdateCODPaid_di" bpmnElement="Activity_SalesPay_UpdateCODPaid">
+        <omgdc:Bounds x="1390" y="3100" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_SalesPay_OnMerge_di" bpmnElement="Gateway_SalesPay_OnMerge" isMarkerVisible="true">
+        <omgdc:Bounds x="1545" y="3040" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_SalesPay_OnComplete_di" bpmnElement="EndEvent_SalesPay_OnComplete">
+        <omgdc:Bounds x="1652" y="3047" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1625" y="3083" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_RecordCOD_di" bpmnElement="Activity_SalesPay_RecordCOD">
+        <omgdc:Bounds x="710" y="3100" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_SalesPay_TrackShipping_di" bpmnElement="Activity_SalesPay_TrackShipping">
+        <omgdc:Bounds x="950" y="3100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1kdjem7_di" bpmnElement="Activity_1kdjem7">
+        <omgdc:Bounds x="830" y="3100" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off1_di" bpmnElement="Flow_SalesPay_Off1">
+        <omgdi:waypoint x="278" y="2815" />
+        <omgdi:waypoint x="330" y="2815" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off2_di" bpmnElement="Flow_SalesPay_Off2">
+        <omgdi:waypoint x="430" y="2815" />
+        <omgdi:waypoint x="485" y="2815" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off_Cash_di" bpmnElement="Flow_SalesPay_Off_Cash">
+        <omgdi:waypoint x="510" y="2790" />
+        <omgdi:waypoint x="510" y="2770" />
+        <omgdi:waypoint x="590" y="2770" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="488" y="2753" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off_Transfer_di" bpmnElement="Flow_SalesPay_Off_Transfer">
+        <omgdi:waypoint x="510" y="2840" />
+        <omgdi:waypoint x="510" y="2890" />
+        <omgdi:waypoint x="590" y="2890" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="515" y="2873" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off3_di" bpmnElement="Flow_SalesPay_Off3">
+        <omgdi:waypoint x="690" y="2770" />
+        <omgdi:waypoint x="750" y="2770" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off4_di" bpmnElement="Flow_SalesPay_Off4">
+        <omgdi:waypoint x="850" y="2770" />
+        <omgdi:waypoint x="1090" y="2770" />
+        <omgdi:waypoint x="1090" y="2790" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off5_di" bpmnElement="Flow_SalesPay_Off5">
+        <omgdi:waypoint x="690" y="2890" />
+        <omgdi:waypoint x="750" y="2890" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off6_di" bpmnElement="Flow_SalesPay_Off6">
+        <omgdi:waypoint x="850" y="2890" />
+        <omgdi:waypoint x="910" y="2890" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off7_di" bpmnElement="Flow_SalesPay_Off7">
+        <omgdi:waypoint x="1010" y="2890" />
+        <omgdi:waypoint x="1090" y="2890" />
+        <omgdi:waypoint x="1090" y="2840" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off8_di" bpmnElement="Flow_SalesPay_Off8">
+        <omgdi:waypoint x="1115" y="2815" />
+        <omgdi:waypoint x="1170" y="2815" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off9_di" bpmnElement="Flow_SalesPay_Off9">
+        <omgdi:waypoint x="1270" y="2815" />
+        <omgdi:waypoint x="1330" y="2815" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_Off10_di" bpmnElement="Flow_SalesPay_Off10">
+        <omgdi:waypoint x="1430" y="2815" />
+        <omgdi:waypoint x="1492" y="2815" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On1_di" bpmnElement="Flow_SalesPay_On1">
+        <omgdi:waypoint x="278" y="3065" />
+        <omgdi:waypoint x="330" y="3065" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On2_di" bpmnElement="Flow_SalesPay_On2">
+        <omgdi:waypoint x="430" y="3065" />
+        <omgdi:waypoint x="485" y="3065" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On_PreTransfer_di" bpmnElement="Flow_SalesPay_On_PreTransfer">
+        <omgdi:waypoint x="510" y="3040" />
+        <omgdi:waypoint x="510" y="3020" />
+        <omgdi:waypoint x="590" y="3020" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="435" y="3023" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On_COD_di" bpmnElement="Flow_SalesPay_On_COD">
+        <omgdi:waypoint x="510" y="3090" />
+        <omgdi:waypoint x="510" y="3140" />
+        <omgdi:waypoint x="590" y="3140" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="477" y="3133" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On3_di" bpmnElement="Flow_SalesPay_On3">
+        <omgdi:waypoint x="690" y="3020" />
+        <omgdi:waypoint x="750" y="3020" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On4_di" bpmnElement="Flow_SalesPay_On4">
+        <omgdi:waypoint x="850" y="3020" />
+        <omgdi:waypoint x="910" y="3020" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On5_di" bpmnElement="Flow_SalesPay_On5">
+        <omgdi:waypoint x="1010" y="3020" />
+        <omgdi:waypoint x="1070" y="3020" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On6_di" bpmnElement="Flow_SalesPay_On6">
+        <omgdi:waypoint x="1170" y="3020" />
+        <omgdi:waypoint x="1230" y="3020" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On7_di" bpmnElement="Flow_SalesPay_On7">
+        <omgdi:waypoint x="1330" y="3020" />
+        <omgdi:waypoint x="1390" y="3020" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On8_di" bpmnElement="Flow_SalesPay_On8">
+        <omgdi:waypoint x="1490" y="3020" />
+        <omgdi:waypoint x="1570" y="3020" />
+        <omgdi:waypoint x="1570" y="3040" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On9_di" bpmnElement="Flow_SalesPay_On9">
+        <omgdi:waypoint x="690" y="3140" />
+        <omgdi:waypoint x="710" y="3140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On10_di" bpmnElement="Flow_SalesPay_On10">
+        <omgdi:waypoint x="810" y="3140" />
+        <omgdi:waypoint x="830" y="3140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On11_di" bpmnElement="Flow_SalesPay_On11">
+        <omgdi:waypoint x="1050" y="3140" />
+        <omgdi:waypoint x="1070" y="3140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On12_di" bpmnElement="Flow_SalesPay_On12">
+        <omgdi:waypoint x="1170" y="3140" />
+        <omgdi:waypoint x="1230" y="3140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On13_di" bpmnElement="Flow_SalesPay_On13">
+        <omgdi:waypoint x="1330" y="3140" />
+        <omgdi:waypoint x="1390" y="3140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On14_di" bpmnElement="Flow_SalesPay_On14">
+        <omgdi:waypoint x="1490" y="3140" />
+        <omgdi:waypoint x="1570" y="3140" />
+        <omgdi:waypoint x="1570" y="3090" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SalesPay_On15_di" bpmnElement="Flow_SalesPay_On15">
+        <omgdi:waypoint x="1595" y="3065" />
+        <omgdi:waypoint x="1652" y="3065" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06e88xr_di" bpmnElement="Flow_06e88xr">
+        <omgdi:waypoint x="930" y="3140" />
+        <omgdi:waypoint x="950" y="3140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_Shipper_di" bpmnElement="Participant_Shipper" isHorizontal="true">
+        <omgdc:Bounds x="170" y="3390" width="1200" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Msg_StockRequest_di" bpmnElement="Flow_Msg_StockRequest">
+        <omgdi:waypoint x="290" y="2060" />
+        <omgdi:waypoint x="290" y="1150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_FactoryOrder_di" bpmnElement="Flow_Msg_FactoryOrder">
+        <omgdi:waypoint x="700" y="1560" />
+        <omgdi:waypoint x="700" y="2230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_FactoryDeliver_di" bpmnElement="Flow_Msg_FactoryDeliver">
+        <omgdi:waypoint x="960" y="2280" />
+        <omgdi:waypoint x="990" y="2280" />
+        <omgdi:waypoint x="990" y="1560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_NotifyReady_di" bpmnElement="Flow_Msg_NotifyReady">
+        <omgdi:waypoint x="1760" y="1560" />
+        <omgdi:waypoint x="1760" y="2100" />
+        <omgdi:waypoint x="920" y="2100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_AnnounceAmount_di" bpmnElement="Flow_Msg_AnnounceAmount">
+        <omgdi:waypoint x="380" y="2775" />
+        <omgdi:waypoint x="380" y="2650" />
+        <omgdi:waypoint x="290" y="2650" />
+        <omgdi:waypoint x="290" y="2570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_PayCash_di" bpmnElement="Flow_Msg_PayCash">
+        <omgdi:waypoint x="590" y="2470" />
+        <omgdi:waypoint x="590" y="2730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_ShowQR_di" bpmnElement="Flow_Msg_ShowQR">
+        <omgdi:waypoint x="610" y="2850" />
+        <omgdi:waypoint x="610" y="2660" />
+        <omgdi:waypoint x="550" y="2660" />
+        <omgdi:waypoint x="550" y="2630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_TransferProof_di" bpmnElement="Flow_Msg_TransferProof">
+        <omgdi:waypoint x="870" y="2630" />
+        <omgdi:waypoint x="870" y="2650" />
+        <omgdi:waypoint x="800" y="2650" />
+        <omgdi:waypoint x="800" y="2850" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_ShipperDeliver_di" bpmnElement="Flow_Msg_ShipperDeliver">
+        <omgdi:waypoint x="1130" y="3390" />
+        <omgdi:waypoint x="1130" y="2510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Msg_PayShipper_di" bpmnElement="Flow_Msg_PayShipper">
+        <omgdi:waypoint x="1300" y="2510" />
+        <omgdi:waypoint x="1300" y="3390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_009lt6v_di" bpmnElement="Flow_009lt6v">
+        <omgdi:waypoint x="480" y="270" />
+        <omgdi:waypoint x="480" y="400" />
+        <omgdi:waypoint x="380" y="400" />
+        <omgdi:waypoint x="380" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_08pxj3v_di" bpmnElement="Flow_08pxj3v">
+        <omgdi:waypoint x="660" y="530" />
+        <omgdi:waypoint x="660" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0mek60t_di" bpmnElement="Flow_0mek60t">
+        <omgdi:waypoint x="790" y="270" />
+        <omgdi:waypoint x="790" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1v3gt0z_di" bpmnElement="Flow_1v3gt0z">
+        <omgdi:waypoint x="1310" y="680" />
+        <omgdi:waypoint x="1310" y="475" />
+        <omgdi:waypoint x="950" y="475" />
+        <omgdi:waypoint x="950" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_003hn3e_di" bpmnElement="Flow_003hn3e">
+        <omgdi:waypoint x="2370" y="530" />
+        <omgdi:waypoint x="2370" y="400" />
+        <omgdi:waypoint x="1180" y="400" />
+        <omgdi:waypoint x="1180" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1nutyix_di" bpmnElement="Flow_1nutyix">
+        <omgdi:waypoint x="3050" y="530" />
+        <omgdi:waypoint x="3050" y="400" />
+        <omgdi:waypoint x="1350" y="400" />
+        <omgdi:waypoint x="1350" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02ghgs0_di" bpmnElement="Flow_02ghgs0">
+        <omgdi:waypoint x="960" y="1150" />
+        <omgdi:waypoint x="960" y="1695" />
+        <omgdi:waypoint x="460" y="1695" />
+        <omgdi:waypoint x="460" y="2060" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0yvx0rf_di" bpmnElement="Flow_0yvx0rf">
+        <omgdi:waypoint x="3050" y="710" />
+        <omgdi:waypoint x="3050" y="990" />
+        <omgdi:waypoint x="1180" y="990" />
+        <omgdi:waypoint x="1180" y="1140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13tyk32_di" bpmnElement="Flow_13tyk32">
+        <omgdi:waypoint x="870" y="3180" />
+        <omgdi:waypoint x="870" y="3250" />
+        <omgdi:waypoint x="2020" y="3250" />
+        <omgdi:waypoint x="2040" y="1210" />
+        <omgdi:waypoint x="1240" y="1210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tf468g_di" bpmnElement="Flow_0tf468g">
+        <omgdi:waypoint x="1000" y="3180" />
+        <omgdi:waypoint x="1000" y="3390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_151ew16_di" bpmnElement="Flow_151ew16">
+        <omgdi:waypoint x="1340" y="3390" />
+        <omgdi:waypoint x="1340" y="3220" />
+        <omgdi:waypoint x="1160" y="3220" />
+        <omgdi:waypoint x="1160" y="3180" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
