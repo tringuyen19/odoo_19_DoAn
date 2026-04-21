@@ -1,2 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_duplicate_guard_duplicate_guard,duplicate_guard.duplicate_guard,model_duplicate_guard_duplicate_guard,base.group_user,1,1,1,1
