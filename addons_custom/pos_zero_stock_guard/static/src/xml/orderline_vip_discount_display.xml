@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t
+        t-name="pos_zero_stock_guard.OrderlineVipDiscountDisplay"
+        t-inherit="point_of_sale.Orderline"
+        t-inherit-mode="extension"
+    >
+        <xpath expr="//li[@t-if='vals.discount']" position="after">
+            <li t-if="vals.vipDiscountLabel" class="price-per-unit">
+                Price: <t t-esc="vals.vipBasePrice"/> | Discount: <t t-esc="vals.vipDiscountAmount"/> (<t t-esc="vals.vipDiscountLabel"/>%)
+            </li>
+        </xpath>
+    </t>
+</templates>
