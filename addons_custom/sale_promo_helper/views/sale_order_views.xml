@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_sale_promo_helper" model="ir.ui.view">
+        <field name="name">sale.order.form.sale.promo.helper</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_loyalty.sale_order_view_form_inherit_sale_loyalty"/>
+        <field name="arch" type="xml">
+            <button name="%(sale_loyalty.sale_loyalty_coupon_wizard_action)d" position="before">
+                <button
+                    name="action_apply_eligible_promos"
+                    type="object"
+                    string="Apply Eligible Promotions"
+                    class="btn btn-secondary"
+                    invisible="locked or state == 'cancel'"
+                />
+                <button
+                    name="action_apply_eligible_promos"
+                    type="object"
+                    string="Apply Eligible Promotions"
+                    class="btn btn-secondary"
+                    disabled="1"
+                    invisible="not (locked or state == 'cancel')"
+                />
+            </button>
+        </field>
+    </record>
+</odoo>

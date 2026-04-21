@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_customer_vip_tier" model="ir.ui.view">
+        <field name="name">res.partner.form.customer.vip.tier</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='property_product_pricelist']" position="after">
+                <button
+                    name="action_recompute_vip_tier"
+                    type="object"
+                    string="Recompute VIP"
+                    class="btn btn-secondary"
+                    groups="sales_team.group_sale_manager"
+                />
+                <field name="vip_tier_id" readonly="1"/>
+                <field name="lifetime_purchase_amount" readonly="1"/>
+                <field name="vip_currency_id" readonly="1" invisible="1"/>
+                <field name="vip_last_compute_date" readonly="1"/>
+                <field name="vip_pricelist_auto" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

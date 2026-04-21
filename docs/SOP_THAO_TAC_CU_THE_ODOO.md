@@ -1961,9 +1961,22 @@ Thiết lập khuyến mãi/điểm thưởng để:
    - `Promotions` (khuyến mãi theo điều kiện).
    - `Loyalty Cards` (tích điểm đổi quà/giảm giá).
    - `Coupons` (mã giảm giá).
+   - `Discount Code` (khách nhập mã khi thanh toán, nếu giao diện có tách riêng).
 4. Chọn phạm vi áp dụng:
    - App/Channel: POS, Sales, Website (nếu có).
    - Company, Pricelist, Customer segment (nếu có field).
+
+## Phân biệt nhanh Program Type (tránh chọn sai)
+
+- `Promotion`: hệ thống tự áp khi đơn đủ điều kiện, không cần nhập mã.
+- `Coupon`: ưu đãi theo coupon phát hành cho khách (quản lý theo từng mã/lượt dùng).
+- `Discount Code`: khách/thu ngân phải nhập đúng mã giảm giá mới áp được.
+
+Khuyến nghị chọn:
+
+- Chạy ưu đãi đại trà tại quầy -> dùng `Promotion`.
+- Chạy chiến dịch có kiểm soát theo danh sách khách -> dùng `Coupon`.
+- Chạy marketing theo mã truyền thông (KOL/ads) -> dùng `Discount Code`.
 
 ## Bước 3: Cấu hình điều kiện tích điểm/áp dụng
 
@@ -1978,6 +1991,38 @@ Với Loyalty Cards, cấu hình thêm:
 
 - Cơ chế tích điểm: theo tiền hoặc theo sản phẩm.
 - Quy tắc làm tròn điểm (nếu hệ thống có tùy chọn).
+
+## Giải thích rõ `Grant point` và `In exchange of`
+
+- `Grant point(s)`: số điểm hệ thống cấp khi đơn thỏa điều kiện rule.
+- `In exchange of`: số điểm cần dùng để đổi 1 reward.
+
+Ví dụ an toàn, dễ vận hành:
+
+- Rule: mua từ 3 sản phẩm, `Grant = 1 point per order`.
+- Reward: giảm 5% toàn đơn, `In exchange of = 1 point`.
+- Kết quả: đơn đủ điều kiện ăn 1 lần ưu đãi, không bị cộng dồn khó kiểm soát.
+
+Lưu ý:
+
+- `per order`: mỗi đơn đủ điều kiện chỉ cấp 1 lần điểm.
+- `per $ spent` hoặc `per unit paid`: dùng khi muốn tích điểm theo tiền/số lượng (dễ chồng ưu đãi nếu thiết kế không kỹ).
+
+## Mẫu 4 quy tắc không chồng lên nhau (khuyến nghị)
+
+Nguyên tắc: mỗi chương trình chỉ dùng 1 trục chính (qty HOẶC amount) cho cùng tập sản phẩm, tránh tạo 2 chương trình tương đương.
+
+1. `Promotion A` (core): Váy cưới, min qty = 3, giảm 7% trên sản phẩm váy, cap 300.000.
+2. `Promotion B` (cross-sell): Phụ kiện, min qty = 2, giảm 15% trên phụ kiện, cap 150.000.
+3. `Coupon C` (khách mới): áp cho pricelist NEW_CUSTOMER, giảm 5% toàn đơn, cap 100.000.
+4. `Discount Code D` (flash): mã theo chiến dịch giờ vàng, áp cho nhóm SKU chỉ định, thời gian ngắn.
+
+Không khuyến nghị đặt đồng thời:
+
+- Rule 1: min qty = 3 (toàn bộ sản phẩm)
+- Rule 2: min amount = 3.000.000 (cùng tập sản phẩm)
+
+vì đa số đơn đạt qty sẽ tự đạt amount, gây chồng chính sách.
 
 ## Bước 4: Cấu hình Rewards (quyền lợi)
 
