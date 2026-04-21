@@ -1814,4 +1814,329 @@ Nếu 1 trong 6 case fail:
 - POS và SO không đè doanh thu lên nhau.
 - Manager nhìn dashboard là thấy ngay đơn nào tắc, tắc ở bước nào.
 
+---
+
+## 12) SOP chi tiết: Pricelist, Discount & Loyalty, Gift Card (không kế toán)
+
+## Phạm vi áp dụng
+
+- Tài liệu này hướng dẫn thao tác vận hành trong `Sales/POS`.
+- Chưa bao gồm phần hạch toán vì doanh nghiệp chưa triển khai module kế toán.
+- Quy định quyền: `Admin` hoặc `Manager` được phép tạo/sửa cấu hình; user bán hàng chỉ dùng, không sửa rule.
+
+## Điều kiện trước khi làm
+
+1. Đã cài app `Sales` và `Point of Sale`.
+2. Sản phẩm đã chuẩn hóa cơ bản:
+   - Có `Sales Price`.
+   - Đã tick `Available in POS` cho sản phẩm bán tại quầy.
+3. POS đã tạo ít nhất 1 quầy để test.
+
+## 12.1) Setup Pricelist (bảng giá)
+
+## Mục tiêu
+
+Thiết lập nhiều chính sách giá theo nhóm khách, theo số lượng hoặc theo kênh bán mà không sửa giá tay từng đơn.
+
+## Bước 1: Bật tính năng Pricelist
+
+### Với Sales
+
+1. Vào `Sales -> Configuration -> Settings`.
+2. Tìm mục `Pricing`.
+3. Bật:
+   - `Pricelists`.
+   - (Nếu cần hiển thị giảm giá tách riêng) `Discounts`.
+4. Bấm `Save`.
+
+### Với POS
+
+1. Vào `Point of Sale -> Configuration -> Point of Sale`.
+2. Mở quầy cần áp dụng.
+3. Trong phần pricing của quầy:
+   - Bật `Flexible Pricelists` (nếu có).
+   - Chọn danh sách `Available Pricelists` mà quầy được dùng.
+4. `Save`.
+
+## Bước 2: Tạo bảng giá
+
+1. Vào `Sales -> Products -> Pricelists`.
+2. Bấm `New`.
+3. Khai báo:
+   - `Pricelist Name`: ví dụ `BANG GIA LE`, `BANG GIA SI`.
+   - `Currency`: đúng tiền tệ đang dùng.
+   - `Company`: đúng công ty.
+4. Ở phần rules, bấm `Add a line` để tạo quy tắc giá.
+
+## Bước 3: Cấu hình rule trong Pricelist
+
+Mỗi dòng rule cần chọn đúng phạm vi áp dụng:
+
+- `Apply On`: `All Products` / `Product Category` / `Product Variant`.
+- `Min Quantity`: số lượng tối thiểu để kích hoạt giá.
+- `Validity`: ngày bắt đầu/kết thúc (nếu là chương trình theo thời gian).
+- Cách tính giá:
+  - `Discount`: giảm theo phần trăm.
+  - `Fixed Price`: chốt 1 mức giá cố định.
+  - `Formula`: công thức nâng cao.
+
+Ví dụ triển khai thực tế:
+
+1. Giá lẻ:
+   - Apply On: All Products.
+   - Discount: 0%.
+2. Giá sỉ:
+   - Apply On: Product Category = nhóm hàng cần áp dụng.
+   - Min Quantity: 10.
+   - Discount: 8%.
+3. Flash sale:
+   - Apply On: Product Variant cụ thể.
+   - Validity: theo khung ngày chạy chương trình.
+   - Discount: 15%.
+
+## Bước 4: Gán Pricelist vào khách hàng và POS
+
+### Gán cho khách hàng (Sales)
+
+1. Vào `Sales -> Orders -> Customers`.
+2. Mở khách hàng.
+3. Tab `Sales & Purchase` (hoặc thông tin bán hàng):
+   - Chọn `Pricelist` mặc định.
+4. `Save`.
+
+### Gán cho POS
+
+1. Vào cấu hình quầy POS.
+2. Chọn `Default Pricelist` cho quầy.
+3. Bổ sung thêm các pricelist được phép đổi tại quầy (nếu có).
+4. `Save`.
+
+## Bước 5: Test nhanh Pricelist
+
+1. Tạo `Quotation` với khách đã gán pricelist, kiểm tra giá tự nhảy đúng.
+2. Trên POS, đổi qua lại giữa các pricelist, kiểm tra giá sản phẩm thay đổi đúng.
+3. Test 1 sản phẩm có min quantity để xác nhận rule số lượng hoạt động.
+
+## Lỗi thường gặp và cách xử lý (Pricelist)
+
+- Không thấy menu `Pricelists`: chưa bật tính năng trong Settings hoặc thiếu quyền Manager.
+- Giá không đổi khi chọn pricelist:
+  - Rule không trúng phạm vi (sai category/sản phẩm).
+  - Chưa đạt `Min Quantity`.
+  - Rule hết hạn hoặc chưa đến ngày hiệu lực.
+- POS không cho đổi bảng giá: chưa bật danh sách `Available Pricelists` ở quầy.
+
+---
+
+## 12.2) Setup Discount & Loyalty
+
+## Mục tiêu
+
+Thiết lập khuyến mãi/điểm thưởng để:
+
+- Giảm giá đúng chính sách.
+- Tự động tích điểm và đổi thưởng.
+- Hạn chế chỉnh tay gây sai lệch giá bán.
+
+## Bước 1: Bật tính năng Discount và Loyalty
+
+### Discount cơ bản
+
+1. Vào `Sales -> Configuration -> Settings`:
+   - Bật `Discounts` (nếu chưa bật).
+2. Vào cấu hình từng quầy POS:
+   - Bật `Discount` để thu ngân dùng nút giảm giá.
+3. `Save`.
+
+### Loyalty/Promotion/Coupon
+
+1. Vào `Point of Sale -> Products -> Discount & Loyalty` (hoặc menu tương đương trong Sales/POS).
+2. Nếu hệ thống yêu cầu cài thêm tính năng loyalty thì bấm cài và chờ hoàn tất.
+
+## Bước 2: Tạo chương trình Discount/Loyalty
+
+1. Vào menu `Discount & Loyalty`.
+2. Bấm `New`.
+3. Chọn loại chương trình (`Program Type`) theo nhu cầu:
+   - `Promotions` (khuyến mãi theo điều kiện).
+   - `Loyalty Cards` (tích điểm đổi quà/giảm giá).
+   - `Coupons` (mã giảm giá).
+4. Chọn phạm vi áp dụng:
+   - App/Channel: POS, Sales, Website (nếu có).
+   - Company, Pricelist, Customer segment (nếu có field).
+
+## Bước 3: Cấu hình điều kiện tích điểm/áp dụng
+
+Thiết lập ở phần điều kiện:
+
+- Điều kiện đơn hàng tối thiểu.
+- Điều kiện sản phẩm hoặc nhóm sản phẩm áp dụng.
+- Ngày hiệu lực chương trình.
+- Giới hạn số lần dùng (nếu cần).
+
+Với Loyalty Cards, cấu hình thêm:
+
+- Cơ chế tích điểm: theo tiền hoặc theo sản phẩm.
+- Quy tắc làm tròn điểm (nếu hệ thống có tùy chọn).
+
+## Bước 4: Cấu hình Rewards (quyền lợi)
+
+Tại phần reward, chọn loại thưởng:
+
+- `% Discount`.
+- `Fixed Discount`.
+- `Free Product`.
+
+Với mỗi reward, xác định rõ:
+
+- Điểm cần đổi hoặc điều kiện kích hoạt.
+- Giới hạn tối đa giảm trên mỗi đơn (nếu có).
+- Áp dụng cho toàn đơn hay theo dòng hàng.
+
+## Bước 5: Gán chương trình cho POS
+
+1. Vào `Point of Sale -> Configuration -> Point of Sale`.
+2. Mở quầy cần chạy chương trình.
+3. Ở phần khuyến mãi, chọn chương trình vừa tạo.
+4. `Save`.
+
+## Bước 6: Test nhanh Discount & Loyalty
+
+1. Tạo đơn POS đủ điều kiện khuyến mãi:
+   - Kiểm tra hệ thống tự áp dụng giảm giá đúng.
+2. Hoàn tất đơn để tích điểm cho khách.
+3. Tạo đơn tiếp theo và redeem reward:
+   - Kiểm tra điểm bị trừ đúng.
+   - Kiểm tra giá trị giảm đúng rule.
+
+## Lỗi thường gặp và cách xử lý (Discount & Loyalty)
+
+- Chương trình không chạy:
+  - Chưa gắn vào quầy POS.
+  - Đơn không đủ điều kiện min amount/min qty.
+  - Chạy ngoài thời gian hiệu lực.
+- Thu ngân sửa giảm giá quá tay:
+  - Giới hạn quyền user, chỉ Manager được sửa rule.
+  - Không cho user thường vào menu cấu hình.
+- Điểm không tích:
+  - Đơn chưa hoàn tất.
+  - Chưa chọn khách hàng trên đơn.
+
+---
+
+## 12.3) Setup Gift Card
+
+## Mục tiêu
+
+Cho phép bán thẻ quà tặng và dùng thẻ để thanh toán ở lần mua sau, thao tác được ngay trong Sales/POS.
+
+## Bước 1: Tạo chương trình Gift Card
+
+1. Vào `Point of Sale -> Products -> Discount & Loyalty`.
+2. Bấm `New`.
+3. Chọn loại chương trình `Gift Card`.
+4. Khai báo thông tin chính:
+   - `Program Name`: ví dụ `THE QUA TANG SHOWROOM`.
+   - `Validity`: ngày bắt đầu/kết thúc (nếu có).
+   - Kênh áp dụng: POS/Sales theo nhu cầu.
+5. `Save`.
+
+## Bước 2: Cấu hình mệnh giá Gift Card
+
+Có 2 cách vận hành, chọn 1 hoặc dùng đồng thời:
+
+1. Mệnh giá cố định:
+   - Tạo các mức: 100.000 / 200.000 / 500.000.
+2. Mệnh giá linh hoạt:
+   - Cho phép nhập số tiền thẻ khi phát hành.
+
+Khuyến nghị vận hành:
+
+- Nếu đội bán hàng mới dùng hệ thống: ưu tiên mệnh giá cố định để tránh nhập sai.
+- Nếu cần linh hoạt theo khách VIP: mở thêm mệnh giá nhập tay cho Manager.
+
+## Bước 3: Cấu hình phát hành và sử dụng thẻ
+
+1. Chọn cách phát hành:
+   - Bán trực tiếp tại POS.
+   - Tạo từ backend cho khách cụ thể.
+2. Chọn quy tắc dùng:
+   - Dùng nhiều lần đến khi hết số dư.
+   - Hoặc chỉ dùng một lần (nếu chính sách yêu cầu).
+3. Bật/tắt expiration theo chính sách công ty.
+4. `Save`.
+
+## Bước 4: Gắn Gift Card vào quầy POS
+
+1. Vào cấu hình quầy POS.
+2. Gắn chương trình Gift Card vào danh sách chương trình áp dụng.
+3. Kiểm tra giao diện POS có nút/mục phát hành và redeem Gift Card.
+
+## Bước 5: Quy trình thao tác tại quầy
+
+### Phát hành Gift Card
+
+1. Thu ngân tạo đơn bán thẻ quà tặng.
+2. Thu tiền thành công.
+3. Hệ thống sinh mã thẻ/coupon.
+4. In hoặc gửi mã cho khách.
+
+### Redeem Gift Card
+
+1. Tạo đơn mua hàng bình thường.
+2. Chọn khách hàng (nếu SOP nội bộ yêu cầu bắt buộc).
+3. Nhập/chọn mã Gift Card.
+4. Hệ thống trừ giá trị thẻ vào đơn.
+5. Thu phần tiền còn lại (nếu có).
+
+## Bước 6: Test nhanh Gift Card
+
+1. Bán 1 gift card mệnh giá nhỏ (ví dụ 100.000).
+2. Tạo đơn mới có giá trị lớn hơn 100.000 và redeem thẻ:
+   - Kiểm tra đơn giảm đúng 100.000.
+3. Tạo đơn mới có giá trị nhỏ hơn phần còn lại của thẻ (nếu cho dùng nhiều lần):
+   - Kiểm tra số dư thẻ giảm đúng.
+4. Test 1 mã hết hạn để xác nhận hệ thống chặn đúng.
+
+## Lỗi thường gặp và cách xử lý (Gift Card)
+
+- Không redeem được thẻ:
+  - Mã sai/đã dùng hết/đã hết hạn.
+  - Chương trình chưa gắn vào quầy POS.
+- Số dư thẻ không đúng:
+  - Đơn trước chưa hoàn tất nhưng đã thoát màn hình.
+  - Có thao tác refund/return chưa theo đúng SOP.
+- Thu ngân không thấy nút Gift Card:
+  - Thiếu quyền POS phù hợp hoặc quầy chưa bật chương trình.
+
+## 12.4) Phân quyền vận hành khuyến nghị (không kế toán)
+
+### Admin/Manager (được chỉnh sửa)
+
+- Tạo/sửa/xóa: Pricelists, Discount & Loyalty Programs, Gift Card Programs.
+- Gắn/bỏ chương trình vào quầy POS.
+- Quyết định ngày hiệu lực, điều kiện, mức giảm, mệnh giá thẻ.
+
+### User bán hàng (không chỉnh sửa cấu hình)
+
+- Chỉ được sử dụng chương trình khi bán hàng:
+  - Chọn pricelist (nếu được cho phép).
+  - Áp dụng discount trong mức cho phép.
+  - Tích điểm, redeem loyalty/gift card theo rule có sẵn.
+- Không được vào menu cấu hình để sửa rule.
+
+## 12.5) Checklist go-live cho 3 tính năng
+
+1. Đã có ít nhất 1 pricelist test + 1 pricelist vận hành thật.
+2. Đã test đủ 3 case discount:
+   - giảm theo %,
+   - giảm theo số tiền cố định,
+   - quà tặng/free product.
+3. Đã test tích điểm và đổi điểm tối thiểu 2 vòng đơn hàng.
+4. Đã test phát hành + redeem + hết hạn gift card.
+5. Đã phân quyền đúng:
+   - Admin/Manager chỉnh được.
+   - User bán hàng không sửa được cấu hình.
+6. Đã chốt SOP xử lý lỗi tại quầy (mất mã, mã hết hạn, đơn bị hủy).
+
 

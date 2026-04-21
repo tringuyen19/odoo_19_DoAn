@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_activity_deadline_reminder" model="ir.cron">
+        <field name="name">Activity reminder 1 hour</field>
+        <field name="model_id" ref="mail.model_mail_activity"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_activity_deadline_reminder()</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_activity_overdue_notification" model="ir.cron">
+        <field name="name">Activity overdue notification</field>
+        <field name="model_id" ref="mail.model_mail_activity"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_activity_overdue_notification()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_activity_escalation_24h" model="ir.cron">
+        <field name="name">Activity escalation 24h</field>
+        <field name="model_id" ref="mail.model_mail_activity"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_activity_escalation_24h()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active">True</field>
+    </record>
+</odoo>
