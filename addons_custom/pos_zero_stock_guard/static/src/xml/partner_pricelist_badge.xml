@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t
+        t-name="pos_zero_stock_guard.SelectPartnerButtonPricelistBadge"
+        t-inherit="point_of_sale.SelectPartnerButton"
+        t-inherit-mode="extension"
+    >
+        <xpath expr="//button/div[1]" position="after">
+            <div
+                t-if="this.pos.getOrder()?.pricelist_id"
+                class="small text-muted text-truncate"
+            >
+                Pricelist: <t t-esc="this.pos.getOrder().pricelist_id.display_name"/>
+            </div>
+        </xpath>
+    </t>
+</templates>
