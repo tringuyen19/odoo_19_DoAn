@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_config_form_mobile_barcode_bridge" model="ir.ui.view">
+        <field name="name">pos.config.form.mobile.barcode.bridge</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@class='row mt16 o_settings_container' and @invisible=&quot;context.get('pos_config_create_mode', False)&quot;]" position="inside">
+                <setting string="Mobile Barcode Scanner"
+                         help="Use a phone camera to scan barcodes and send them to this POS in real time.">
+                    <field name="mobile_barcode_enabled"/>
+                    <div class="content-group mt16" invisible="not mobile_barcode_enabled">
+                        <div class="row mb-2">
+                            <div class="col-lg-3 o_light_label">
+                                <label for="mobile_barcode_token" string="Token"/>
+                            </div>
+                            <div class="col-lg-9">
+                                <field name="mobile_barcode_token" readonly="1"/>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-lg-3 o_light_label">
+                                <label for="mobile_barcode_url" string="Scanner URL"/>
+                            </div>
+                            <div class="col-lg-9">
+                                <field name="mobile_barcode_url" widget="url" readonly="1"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-9 offset-lg-3">
+                                <button
+                                    type="object"
+                                    name="action_regenerate_mobile_barcode_token"
+                                    class="btn btn-secondary"
+                                    string="Regenerate Token"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+    <template id="mobile_scanner_page" name="POS Mobile Scanner">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>POS Mobile Scanner</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 16px;
+                        background: #f5f5f7;
+                        color: #1f2937;
+                    }
+                    .card {
+                        max-width: 560px;
+                        margin: 0 auto;
+                        background: #ffffff;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+                        padding: 16px;
+                    }
+                    h1 {
+                        font-size: 20px;
+                        margin: 0 0 12px;
+                    }
+                    p {
+                        margin: 0 0 12px;
+                        line-height: 1.4;
+                    }
+                    #manual-input {
+                        width: 100%;
+                        box-sizing: border-box;
+                        padding: 12px;
+                        border: 1px solid #d1d5db;
+                        border-radius: 8px;
+                        margin-bottom: 10px;
+                        font-size: 16px;
+                    }
+                    .row {
+                        display: flex;
+                        gap: 8px;
+                        margin-bottom: 12px;
+                    }
+                    button {
+                        flex: 1;
+                        border: 0;
+                        border-radius: 8px;
+                        padding: 10px 12px;
+                        font-size: 15px;
+                    }
+                    .btn-primary {
+                        background: #7c3aed;
+                        color: #fff;
+                    }
+                    .btn-secondary {
+                        background: #e5e7eb;
+                        color: #111827;
+                    }
+                    .status {
+                        font-weight: 600;
+                        min-height: 20px;
+                    }
+                    video {
+                        width: 100%;
+                        border-radius: 8px;
+                        background: #111827;
+                    }
+                </style>
+                <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+            </head>
+            <body>
+                <div class="card">
+                    <h1>POS Mobile Scanner</h1>
+                    <p>
+                        POS: <strong><t t-esc="config_name"/></strong><br/>
+                        Quet ma vach bang camera hoac nhap tay ma barcode.
+                    </p>
+                    <video id="video" autoplay="" playsinline="" muted=""></video>
+                    <p class="status" id="status">Dang khoi dong camera...</p>
+                    <input id="manual-input" type="text" placeholder="Nhap barcode neu camera khong ho tro"/>
+                    <div class="row">
+                        <button id="send-manual" class="btn-primary" type="button">Gui barcode</button>
+                        <button id="toggle-camera" class="btn-secondary" type="button">Tat camera</button>
+                    </div>
+                </div>
+
+                <script type="text/javascript">
+                    (() => {
+                        const configId = <t t-esc="config_id"/>;
+                        const token = "<t t-esc='token'/>";
+                        const statusEl = document.getElementById("status");
+                        const video = document.getElementById("video");
+                        const manualInput = document.getElementById("manual-input");
+                        const sendManualBtn = document.getElementById("send-manual");
+                        const toggleCameraBtn = document.getElementById("toggle-camera");
+                        let cameraStream = null;
+                        let detector = null;
+                        let scanTimer = null;
+                        let zxingReader = null;
+                        let zxingControls = null;
+                        let scannerMode = null;
+
+                        const setStatus = (text) => {
+                            statusEl.textContent = text;
+                        };
+
+                        const getReadableCameraError = (err) => {
+                            const name = err?.name || "UnknownError";
+                            const message = err?.message || "";
+                            const base = `Camera error: ${name}${message ? ` - ${message}` : ""}.`;
+                            if (name === "NotAllowedError") {
+                                return `${base} Hay cap quyen Camera cho website trong Safari (aA > Website Settings > Camera > Allow).`;
+                            }
+                            if (name === "NotFoundError") {
+                                return `${base} Khong tim thay camera tren thiet bi.`;
+                            }
+                            if (name === "NotReadableError") {
+                                return `${base} Camera dang duoc app khac su dung. Hay dong app camera/scan khac roi thu lai.`;
+                            }
+                            if (name === "NotSupportedError") {
+                                return `${base} Trinh duyet/webview hien tai khong ho tro API camera. Hay mo bang Safari truc tiep.`;
+                            }
+                            if (name === "SecurityError") {
+                                return `${base} Trinh duyet chan camera do context khong an toan. Thu mo lai bang Safari truc tiep.`;
+                            }
+                            return `${base} Neu dang mo tu Zalo/Messenger, hay mo link scanner bang Safari truc tiep.`;
+                        };
+
+                        const pushBarcode = async (barcode) => {
+                            const code = (barcode || "").trim();
+                            if (!code) {
+                                return;
+                            }
+                            try {
+                                const response = await fetch("/pos/mobile_scanner/push", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        jsonrpc: "2.0",
+                                        method: "call",
+                                        params: {
+                                            config_id: configId,
+                                            token: token,
+                                            barcode: code,
+                                        },
+                                        id: Date.now(),
+                                    }),
+                                });
+                                const payload = await response.json();
+                                if (payload.result &amp;&amp; payload.result.ok) {
+                                    setStatus(`Da gui: ${code}`);
+                                } else {
+                                    setStatus("Gui that bai, vui long thu lai.");
+                                }
+                            } catch (err) {
+                                setStatus("Loi ket noi Odoo.");
+                            }
+                        };
+
+                        const stopCamera = () => {
+                            if (zxingControls) {
+                                zxingControls.stop();
+                                zxingControls = null;
+                            }
+                            if (zxingReader) {
+                                zxingReader.reset();
+                                zxingReader = null;
+                            }
+                            if (scanTimer) {
+                                clearInterval(scanTimer);
+                                scanTimer = null;
+                            }
+                            if (cameraStream) {
+                                cameraStream.getTracks().forEach((track) => track.stop());
+                                cameraStream = null;
+                            }
+                            video.srcObject = null;
+                            scannerMode = null;
+                        };
+
+                        const startZXingScanner = async () => {
+                            if (!window.ZXing || !window.ZXing.BrowserMultiFormatReader) {
+                                setStatus("Khong tai duoc thu vien quet ma vach. Dung nhap tay.");
+                                return false;
+                            }
+                            try {
+                                zxingReader = new window.ZXing.BrowserMultiFormatReader();
+                                zxingControls = await zxingReader.decodeFromVideoDevice(
+                                    null,
+                                    "video",
+                                    async (result) => {
+                                        if (!result) {
+                                            return;
+                                        }
+                                        await pushBarcode(result.getText());
+                                    }
+                                );
+                                scannerMode = "zxing";
+                                setStatus("Dang quet (iPhone compatible)...");
+                                return true;
+                            } catch (err) {
+                                setStatus(getReadableCameraError(err));
+                                return false;
+                            }
+                        };
+
+                        const startCamera = async () => {
+                            stopCamera();
+                            if (!("BarcodeDetector" in window)) {
+                                await startZXingScanner();
+                                return;
+                            }
+                            try {
+                                detector = new BarcodeDetector({
+                                    formats: [
+                                        "ean_13",
+                                        "ean_8",
+                                        "upc_a",
+                                        "upc_e",
+                                        "code_128",
+                                        "code_39",
+                                        "qr_code",
+                                    ],
+                                });
+                                cameraStream = await navigator.mediaDevices.getUserMedia({
+                                    video: { facingMode: "environment" },
+                                    audio: false,
+                                });
+                                video.srcObject = cameraStream;
+                                scannerMode = "native";
+                                setStatus("Dang quet... huong camera vao barcode.");
+                                scanTimer = setInterval(async () => {
+                                    if (!detector || !video || video.readyState &lt; 2) {
+                                        return;
+                                    }
+                                    try {
+                                        const barcodes = await detector.detect(video);
+                                        if (barcodes.length) {
+                                            const value = barcodes[0].rawValue;
+                                            await pushBarcode(value);
+                                        }
+                                    } catch (err) {
+                                        // ignore frame errors
+                                    }
+                                }, 900);
+                            } catch (err) {
+                                const started = await startZXingScanner();
+                                if (!started) {
+                                    setStatus(getReadableCameraError(err));
+                                }
+                            }
+                        };
+
+                        sendManualBtn.addEventListener("click", async () => {
+                            await pushBarcode(manualInput.value);
+                            manualInput.value = "";
+                            manualInput.focus();
+                        });
+                        manualInput.addEventListener("keydown", async (event) => {
+                            if (event.key === "Enter") {
+                                await pushBarcode(manualInput.value);
+                                manualInput.value = "";
+                            }
+                        });
+                        toggleCameraBtn.addEventListener("click", async () => {
+                            if (cameraStream || zxingControls || scannerMode) {
+                                stopCamera();
+                                setStatus("Da tat camera.");
+                                toggleCameraBtn.textContent = "Bat camera";
+                            } else {
+                                await startCamera();
+                                toggleCameraBtn.textContent = "Tat camera";
+                            }
+                        });
+
+                        startCamera();
+                    })();
+                </script>
+            </body>
+        </html>
+    </template>
+</odoo>

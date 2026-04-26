@@ -1,5 +1,367 @@
 # SOP THAO TÁC CỤ THỂ TRÊN ODOO (CẦM TAY CHỈ VIỆC)
 
+## 12) SOP chi tiết - Quét Barcode trên điện thoại cho POS (module custom `pos_mobile_barcode_bridge`)
+
+## Mục tiêu
+
+Thiết lập quy trình để:
+
+- Thu ngân bán hàng trên POS máy tính như bình thường.
+- Nhân viên dùng điện thoại quét barcode bằng camera.
+- Barcode được đẩy realtime vào POS để thêm sản phẩm, không cần máy quét chuyên dụng.
+
+## Phạm vi áp dụng
+
+- Áp dụng cho bản Odoo Community/local đang chạy nội bộ.
+- Áp dụng cho module custom: `addons_custom/pos_mobile_barcode_bridge`.
+- Áp dụng cho nghiệp vụ bán tại quầy POS.
+
+---
+
+## Phần A - Kiến thức nền cần hiểu trước khi làm
+
+### 1) Mô hình hoạt động
+
+Luồng kỹ thuật của giải pháp:
+
+1. Điện thoại mở trang scanner của Odoo (URL có token bảo mật).
+2. Camera điện thoại đọc barcode.
+3. Điện thoại gửi barcode về route JSON của Odoo.
+4. Backend gửi sự kiện qua `bus`.
+5. POS desktop nhận sự kiện và gọi `barcode_reader.scan(barcode)`.
+6. Odoo POS tự xử lý như khi quét bằng máy scan thật (thêm sản phẩm/tăng số lượng/cảnh báo mã không tồn tại).
+
+### 2) Điều kiện bắt buộc
+
+- Máy tính chạy Odoo và máy điện thoại phải cùng mạng LAN/Wi-Fi.
+- Điện thoại truy cập được địa chỉ Odoo của máy tính theo dạng `http://<IP_LAN>:8069`.
+- Sản phẩm phải có barcode hợp lệ trên biến thể (`product.product`) để POS tra ra được.
+
+### 3) Điểm cần lưu ý quan trọng
+
+- Nếu điện thoại không vào được Odoo thì scanner không hoạt động.
+- Nếu barcode không gán đúng sản phẩm thì POS sẽ báo `Unknown Barcode`.
+- Nếu mở sai POS config thì mã có thể gửi nhầm quầy.
+
+---
+
+## Phần B - Cài module custom
+
+### Bước 1: Cập nhật danh sách module
+
+1. Vào `Apps`.
+2. Bấm `Update Apps List`.
+3. Chờ hệ thống cập nhật xong.
+
+### Bước 2: Cài module
+
+1. Trong `Apps`, tìm `POS Mobile Barcode Bridge`.
+2. Bấm `Install`.
+3. Kiểm tra trạng thái cài thành công.
+
+### Bước 3: Restart server và hard refresh trình duyệt
+
+1. Restart tiến trình Odoo để chắc chắn nạp asset mới.
+2. Mở lại POS bằng cửa sổ mới.
+3. Hard refresh trình duyệt POS (`Ctrl + F5`).
+
+Kết quả mong đợi:
+
+- Không lỗi JS trên màn hình POS.
+- Trong popup `Actions` của POS có nút `Mobile Scanner`.
+
+---
+
+## Phần C - Cấu hình POS để bật scanner điện thoại
+
+### Bước 1: Vào cấu hình quầy
+
+1. Vào `Point of Sale -> Configuration -> Point of Sale`.
+2. Mở đúng quầy đang vận hành.
+
+### Bước 2: Bật tính năng mobile scanner
+
+Trong form POS config:
+
+- Tick `Enable Mobile Barcode Scanner`.
+- Kiểm tra `Mobile Scanner Token` đã có giá trị.
+- Copy `Mobile Scanner URL`.
+
+### Bước 3: Regenerate token khi cần đổi quyền truy cập
+
+Khi nghi ngờ lộ link scanner:
+
+1. Bấm `Regenerate Token`.
+2. Lưu lại POS config.
+3. Gửi link mới cho đội vận hành.
+4. Link cũ sẽ không còn dùng được.
+
+---
+
+## Phần D - Cấu hình mạng LAN để điện thoại truy cập được Odoo local
+
+> Nếu Odoo chỉ mở bằng `localhost:8069` thì điện thoại sẽ không truy cập được.
+
+### Bước 1: Lấy IP LAN của máy chạy Odoo
+
+Trên Windows PowerShell chạy:
+
+`ipconfig`
+
+Lấy IPv4 của card mạng đang dùng (ví dụ `192.168.1.10`).
+
+### Bước 2: Chạy Odoo lắng nghe toàn bộ interface
+
+#### 2.1 Giải thích ngắn gọn
+
+- `localhost` hoặc `127.0.0.1` nghĩa là chỉ chính máy đó truy cập được.
+- Điện thoại muốn vào được Odoo thì Odoo phải lắng nghe trên card mạng LAN của máy tính.
+- Tham số `--http-interface=0.0.0.0` nghĩa là Odoo mở cổng HTTP trên mọi interface mạng khả dụng.
+
+#### 2.2 Cách làm trên Windows (PowerShell)
+
+1. Dừng tiến trình Odoo đang chạy (terminal cũ bấm `Ctrl + C`).
+2. Mở terminal PowerShell mới tại thư mục project Odoo.
+3. Chạy lại Odoo và thêm tham số:
+   - `--http-interface=0.0.0.0`
+4. Giữ nguyên các tham số còn lại như DB, addons path, user, password.
+
+Ví dụ lệnh đầy đủ (điều chỉnh theo môi trường thực tế):
+
+`e:; cd 'e:\ODOO\odoo-19.0'; & 'e:\ODOO\odoo-19.0\venv\Scripts\python.exe' 'c:\Users\ADMIN\.cursor\extensions\ms-python.debugpy-2025.18.0-win32-x64\bundled\libs\debugpy\launcher' '65852' '--' 'E:\ODOO\odoo-19.0/odoo-bin' '--db_host=localhost' '-r' 'odoo-user' '-w' '123' '-d' 'odoo-db' '--addons-path=E:\ODOO\odoo-19.0/addons,E:\ODOO\odoo-19.0/odoo/addons,E:\ODOO\odoo-19.0/addons_custom' '--dev' 'xml' '--http-interface=0.0.0.0'`
+
+#### 2.3 Cách tự kiểm tra đã chạy đúng chưa
+
+1. Trên chính máy tính chạy Odoo, mở trình duyệt:
+   - `http://127.0.0.1:8069`
+   - `http://<IP_LAN_CUA_MAY>:8069` (ví dụ `http://192.168.1.10:8069`)
+2. Nếu cả 2 URL cùng vào được màn hình Odoo thì cấu hình interface đúng.
+3. Nếu chỉ `127.0.0.1` vào được còn `IP_LAN` không vào được:
+   - Kiểm tra lại đã thêm `--http-interface=0.0.0.0` chưa.
+   - Kiểm tra firewall ở Bước 3.
+
+#### 2.4 Kết quả mong đợi của Bước 2
+
+- Odoo truy cập được bằng địa chỉ LAN trong mạng nội bộ.
+- Link scanner trên điện thoại có thể dùng được sau khi mở firewall.
+
+### Bước 3: Mở firewall port 8069
+
+1. Mở `Windows Defender Firewall with Advanced Security`.
+2. Tạo `Inbound Rule`:
+   - Type: `Port`
+   - Protocol: `TCP`
+   - Port: `8069`
+   - Action: `Allow`
+   - Profile: `Private`
+3. Đặt tên rule dễ nhớ (ví dụ `Odoo 8069 LAN`).
+
+### Bước 4: Kiểm tra kết nối
+
+1. Trên máy Odoo, mở trình duyệt:
+   - `http://192.168.1.8:8069`
+2. Trên điện thoại cùng Wi-Fi, mở URL tương tự.
+
+Kết quả mong đợi:
+
+- Cả máy tính và điện thoại đều truy cập được trang Odoo login/web.
+
+---
+
+## Phần E - Setup barcode cho sản phẩm chuẩn POS
+
+### Quy tắc dữ liệu
+
+- Mỗi biến thể bán tại quầy có 1 barcode duy nhất.
+- Không trùng barcode giữa các sản phẩm/biến thể.
+- Ưu tiên EAN-13 hoặc CODE-128 in rõ, dễ quét.
+
+### Bước thao tác
+
+1. Vào `Inventory -> Products -> Products`.
+2. Mở sản phẩm/biến thể.
+3. Điền trường `Barcode`.
+4. Đảm bảo `Available in POS` đã bật cho sản phẩm.
+5. Lưu dữ liệu.
+
+### Import hàng loạt (khuyến nghị)
+
+1. Chuẩn bị file CSV với cột:
+   - `Internal Reference`
+   - `Barcode`
+   - `Name` (hoặc mã định danh phù hợp)
+2. Vào `Products -> Import`.
+3. Map field đúng rồi import.
+4. Xử lý bản ghi báo trùng barcode trước khi go-live.
+
+---
+
+## Phần F - Quy trình vận hành thực tế tại quầy
+
+### Bước 1: Thu ngân mở POS
+
+1. Mở session POS như bình thường.
+2. Đứng ở màn hình ProductScreen.
+
+### Bước 2: Mở link scanner trên điện thoại
+
+Có 2 cách:
+
+- Cách A: từ POS bấm `...` -> `Mobile Scanner` để copy link.
+- Cách B: dùng link trong POS config (`Mobile Scanner URL`).
+
+Sau đó:
+
+1. Mở link trên điện thoại.
+2. Cho phép quyền camera.
+3. Hướng camera vào mã vạch.
+
+### Bước 3: Bán hàng
+
+1. Quét mã sản phẩm.
+2. POS desktop tự thêm dòng hàng.
+3. Quét cùng mã nhiều lần -> tăng số lượng.
+4. Thanh toán như luồng POS hiện tại.
+
+### Bước 4: Trường hợp camera không hỗ trợ
+
+Trang scanner có ô nhập tay:
+
+1. Nhập barcode vào ô text.
+2. Bấm `Gui barcode` hoặc Enter.
+3. POS vẫn nhận barcode như bình thường.
+
+---
+
+## Phần G - Kịch bản test chuẩn trước khi go-live
+
+### Test 1: Barcode hợp lệ
+
+- Quét 1 mã có tồn tại trong POS.
+- Kỳ vọng: sản phẩm vào giỏ đúng tên/đúng giá.
+
+### Test 2: Barcode không tồn tại
+
+- Quét 1 mã rác.
+- Kỳ vọng: POS cảnh báo không tìm thấy barcode.
+
+### Test 3: Quét lặp
+
+- Quét cùng 1 mã 3 lần.
+- Kỳ vọng: số lượng tăng đúng 3.
+
+### Test 4: Hiệu năng cơ bản
+
+- Quét liên tục 10-20 mã.
+- Kỳ vọng: POS vẫn phản hồi ổn định, không đơ giao diện.
+
+### Test 5: Đúng quầy
+
+- Nếu có nhiều quầy POS, xác nhận mã chỉ vào quầy đang mở link đúng token/config.
+
+---
+
+## Phần H - Lỗi thường gặp và cách xử lý
+
+### 1) Điện thoại không mở được link scanner
+
+Nguyên nhân thường gặp:
+
+- Odoo đang bind `localhost`.
+- Chưa mở firewall port `8069`.
+- Điện thoại khác mạng Wi-Fi.
+
+Cách xử lý:
+
+- Chạy Odoo với `--http-interface=0.0.0.0`.
+- Mở inbound rule TCP 8069.
+- Đưa điện thoại và máy tính về cùng mạng LAN.
+
+### 2) Mở được scanner nhưng quét không ra gì
+
+Nguyên nhân:
+
+- Browser không hỗ trợ `BarcodeDetector`.
+- Không cấp quyền camera.
+- Barcode in mờ, ngược sáng.
+
+Cách xử lý:
+
+- Dùng Chrome bản mới trên Android.
+- Cho phép camera trong browser settings.
+- Bật đèn/đổi góc quét.
+- Dùng ô nhập tay barcode.
+
+### 3) POS không nhận barcode dù điện thoại báo đã gửi
+
+Nguyên nhân:
+
+- POS chưa mở đúng config.
+- Asset POS chưa reload sau khi cài module.
+- Mất kết nối bus/websocket tạm thời.
+
+Cách xử lý:
+
+- Đóng mở lại tab POS.
+- Hard refresh `Ctrl + F5`.
+- Kiểm tra đã cài module thành công và restart Odoo.
+
+### 4) Quét ra sai sản phẩm hoặc không ra sản phẩm
+
+Nguyên nhân:
+
+- Dữ liệu barcode trùng.
+- Barcode gán ở template nhưng biến thể khác.
+- Sản phẩm chưa bật `Available in POS`.
+
+Cách xử lý:
+
+- Rà soát barcode unique theo `product.product`.
+- Sửa mapping barcode đúng biến thể.
+- Bật lại cờ hiển thị POS.
+
+---
+
+## Phần I - Checklist nghiệm thu/go-live
+
+1. Đã cài `pos_mobile_barcode_bridge`.
+2. Đã bật `Enable Mobile Barcode Scanner` trên đúng quầy.
+3. Điện thoại truy cập được `http://<IP_LAN>:8069`.
+4. Đã mở camera và quét được ít nhất 5 mã thật.
+5. POS nhận mã realtime, thêm sản phẩm chính xác.
+6. Team thu ngân đã được training quy trình:
+   - Mở link scanner
+   - Quét mã
+   - Fallback nhập tay khi cần
+7. Có quy trình bảo mật token:
+   - Đổi token khi lộ link
+   - Không chia sẻ link ra ngoài nội bộ
+
+---
+
+## Phần J - Quy trình vận hành hằng ngày (khuyến nghị)
+
+### Đầu ca
+
+1. Mở POS session.
+2. Test quét 1 mã mẫu.
+3. Xác nhận POS nhận mã bình thường.
+
+### Trong ca
+
+1. Dùng điện thoại quét barcode để thêm sản phẩm.
+2. Nếu lỗi camera, chuyển sang nhập tay barcode tạm thời.
+3. Ghi nhận lỗi phát sinh vào log vận hành.
+
+### Cuối ca
+
+1. Đóng ca POS theo SOP hiện hành.
+2. Nếu có sự cố scanner, tổng hợp nguyên nhân:
+   - mạng
+   - dữ liệu barcode
+   - thiết bị
+3. Chốt action cho ca tiếp theo.
+
 Tài liệu này dành cho người vận hành thực tế, hướng dẫn từng bước thao tác trong Odoo.
 Ví dụ chi tiết bao gồm: tạo kho sản phẩm, tạo vị trí kho, tạo sản phẩm, nhập tồn đầu kỳ, tạo đơn bán, xuất kho, xuất hóa đơn.
 

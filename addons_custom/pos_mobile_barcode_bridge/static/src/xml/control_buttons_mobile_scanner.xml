@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_mobile_barcode_bridge.ControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//div[contains(@class, 'control-buttons-modal')]" position="inside">
+            <button
+                t-if="this.pos.cashier._role != 'minimal' and this.pos.config.mobile_barcode_enabled"
+                t-att-class="buttonClass"
+                t-on-click="() => this.clickMobileScanner()"
+            >
+                <i class="fa fa-mobile me-1" role="img" aria-label="Mobile Scanner" title="Mobile Scanner"/>
+                Mobile Scanner
+            </button>
+        </xpath>
+    </t>
+</templates>
