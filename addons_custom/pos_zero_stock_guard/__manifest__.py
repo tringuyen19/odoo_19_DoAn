@@ -10,7 +10,6 @@
         "point_of_sale._assets_pos": [
             "pos_zero_stock_guard/static/src/js/product_configurator_guard.js",
             "pos_zero_stock_guard/static/src/js/payment_entry_guard.js",
-            "pos_zero_stock_guard/static/src/js/payment_stock_guard.js",
             "pos_zero_stock_guard/static/src/js/orderline_vip_discount_display.js",
             "pos_zero_stock_guard/static/src/xml/partner_pricelist_badge.xml",
             "pos_zero_stock_guard/static/src/xml/orderline_vip_discount_display.xml",

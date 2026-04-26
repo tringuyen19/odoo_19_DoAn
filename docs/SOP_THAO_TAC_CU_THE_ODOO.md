@@ -2185,3 +2185,240 @@ Khuyến nghị vận hành:
 6. Đã chốt SOP xử lý lỗi tại quầy (mất mã, mã hết hạn, đơn bị hủy).
 
 
+---
+
+## 13) Setup CRM chi tiết cho mô hình showroom + POS
+
+## Mục tiêu
+
+Thiết lập CRM theo mô hình hiện tại để:
+
+- Quản lý lead/cơ hội trước khi chốt đơn.
+- Chuẩn hóa follow-up cho team Sales.
+- Đo hiệu suất theo tuần cho Manager.
+- Liên thông CRM với Sales/POS để tăng tỷ lệ mua lại.
+
+## Mô hình áp dụng
+
+Phù hợp cho mô hình đang vận hành:
+
+- Bán lẻ tại showroom/POS.
+- Có khách cần tư vấn trước khi mua.
+- Có loyalty/gift card để tái kích hoạt khách cũ.
+
+Khuyến nghị:
+
+- Giao dịch mua nhanh tại quầy: xử lý trực tiếp bằng POS.
+- Khách có nhu cầu tư vấn, đặt trước, đơn giá trị cao: bắt buộc đi qua CRM.
+
+## Phần A - Cấu hình pipeline CRM chuẩn
+
+### Bước 1: Cài và mở module CRM
+
+1. Vào `Apps`.
+2. Tìm `CRM`.
+3. Bấm `Install` (nếu chưa cài).
+4. Mở app `CRM`.
+
+### Bước 2: Tạo pipeline theo stage chuẩn
+
+1. Vào `CRM -> Configuration -> Pipelines` (hoặc vào Kanban cơ hội, menu cấu hình stage).
+2. Tạo các stage theo thứ tự:
+   - `Lead mới`
+   - `Đã liên hệ`
+   - `Đang tư vấn`
+   - `Đã báo giá`
+   - `Đang đàm phán`
+   - `Thắng`
+   - `Thua`
+3. Cấu hình xác suất gợi ý (nếu dùng Forecast):
+   - Lead mới: 10%
+   - Đã liên hệ: 25%
+   - Đang tư vấn: 40%
+   - Đã báo giá: 60%
+   - Đang đàm phán: 80%
+   - Thắng: 100%
+   - Thua: 0%
+4. `Save`.
+
+### Bước 3: Quy tắc dịch chuyển stage
+
+- Chỉ chuyển sang `Đã báo giá` khi đã tạo báo giá (Quotation) hoặc đã gửi bảng giá.
+- Chỉ chuyển `Thắng` khi:
+  - Đã tạo SO/POS order thành công.
+  - Có giá trị doanh thu thực tế hoặc dự kiến đã xác nhận.
+- Khi chuyển `Thua`, bắt buộc chọn lý do thua để phục vụ KPI.
+
+## Phần B - Bộ field bắt buộc cần nhập
+
+## Mục tiêu
+
+Chuẩn dữ liệu đầu vào để manager đọc được pipeline và đo hiệu suất.
+
+### Bước 1: Bật Developer Mode
+
+1. Vào `Settings`.
+2. Bật `Developer Mode`.
+
+### Bước 2: Thiết lập field bắt buộc trên Lead/Opportunity
+
+Tại form `CRM Opportunity`, yêu cầu Sales bắt buộc điền:
+
+- `Customer Name` (Tên khách).
+- `Phone` (SĐT liên hệ).
+- `Salesperson` (nhân viên phụ trách).
+- `Expected Revenue` (doanh thu dự kiến).
+- `Expected Closing` (ngày dự kiến chốt).
+- `Lead Source` (nguồn khách: walk-in, fanpage, hotline, giới thiệu, ads).
+- `Tags` (nhóm nhu cầu: mua ngay, tham khảo, khách cũ, VIP).
+
+Khuyến nghị thêm custom field (nếu chưa có):
+
+- `Kênh tiếp nhận`: POS tại quầy / online / hotline / đối tác.
+- `Mức độ nóng`: Nóng / Ấm / Lạnh.
+- `Nhóm sản phẩm quan tâm`.
+- `Lý do thua` (dropdown chuẩn).
+
+### Bước 3: Quy chuẩn nhập liệu tối thiểu
+
+- Mỗi lead mới phải có ít nhất: tên + điện thoại + nguồn.
+- Không tạo lead trùng số điện thoại.
+- Nếu khách cũ quay lại, gộp vào contact cũ, tạo cơ hội mới có liên kết contact đó.
+
+## Phần C - Activity template cho Sales
+
+## Mục tiêu
+
+Sales luôn có lịch follow-up rõ ràng, không bỏ sót lead.
+
+### Template chuẩn theo vòng đời lead
+
+1. Khi tạo lead mới:
+   - Activity: `Call`
+   - Deadline: trong 4 giờ làm việc.
+   - Mục tiêu: xác nhận nhu cầu + ngân sách + thời điểm mua.
+2. Sau cuộc gọi đầu:
+   - Activity: `To Do`
+   - Deadline: trong ngày.
+   - Mục tiêu: cập nhật ghi chú và chuyển stage đúng trạng thái.
+3. Khi lead vào `Đang tư vấn`:
+   - Activity: `Email` hoặc `Meeting`
+   - Deadline: trong 24 giờ.
+   - Mục tiêu: gửi đề xuất sản phẩm/chính sách giá.
+4. Khi vào `Đã báo giá`:
+   - Activity: `Call`
+   - Deadline: sau 2 ngày.
+   - Mục tiêu: chốt phản hồi, xử lý vướng mắc, kéo sang đàm phán.
+5. Khi `Thắng`:
+   - Activity: `To Do`
+   - Deadline: trong 3 ngày sau mua.
+   - Mục tiêu: hướng dẫn loyalty/gift card và tạo cơ hội mua lại.
+6. Khi `Thua`:
+   - Activity: `To Do`
+   - Deadline: trong 7-14 ngày (tùy lý do).
+   - Mục tiêu: tái tiếp cận nhẹ nếu còn tiềm năng.
+
+### Bước setup activity type
+
+1. Vào `CRM -> Configuration -> Activity Types`.
+2. Đảm bảo có đủ loại:
+   - `Call`
+   - `Email`
+   - `Meeting`
+   - `To Do`
+3. Cấu hình gợi ý `Default Summary` cho từng loại để user thao tác nhanh.
+
+## Phần D - KPI tuần cho Manager
+
+## Mục tiêu
+
+Manager theo dõi pipeline theo tuần và ra quyết định nhanh.
+
+### KPI bắt buộc theo tuần (theo Salesperson và toàn team)
+
+- Lead mới/tuần.
+- Tỷ lệ liên hệ thành công (% lead có call đầu trong SLA).
+- Tỷ lệ chuyển đổi stage:
+  - Lead mới -> Đã liên hệ
+  - Đang tư vấn -> Đã báo giá
+  - Đã báo giá -> Thắng
+- Số cơ hội thắng.
+- Tỷ lệ thắng (Win Rate).
+- Doanh thu dự kiến (pipeline amount).
+- Doanh thu đã chốt (won revenue).
+- Số cơ hội thua + top lý do thua.
+- Tỷ lệ lead không có activity quá hạn.
+
+### Bước setup dashboard và filter
+
+1. Vào `CRM -> Reporting -> Pipeline`.
+2. Tạo filter mặc định:
+   - `This Week`
+   - `My Team`
+   - `Active Opportunities`
+3. Nhóm theo:
+   - `Salesperson`
+   - `Stage`
+   - `Lead Source`
+4. Lưu thành `Favorite` cho Manager.
+5. Tạo thêm view riêng `Won Opportunities` để theo dõi doanh thu chốt thực tế.
+
+### Chu kỳ review hằng tuần
+
+- Thời điểm: cuối tuần hoặc sáng thứ 2.
+- Nội dung họp:
+  - Review KPI tuần trước.
+  - Xác định stage bị nghẽn.
+  - Chốt danh sách cơ hội ưu tiên tuần mới.
+  - Chốt coaching cho từng Sales (nếu tỷ lệ chuyển đổi thấp).
+
+## Phần E - Quy trình thao tác chuẩn từ Lead đến chốt đơn
+
+1. Sales nhận lead mới, tạo Opportunity, điền đủ field bắt buộc.
+2. Tạo activity gọi lần 1 ngay trong ngày.
+3. Cập nhật ghi chú nhu cầu và chuyển stage phù hợp.
+4. Khi đủ thông tin, tạo Quotation từ Opportunity.
+5. Follow-up theo template đến khi:
+   - `Thắng`: tạo SO/POS order và ghi nhận doanh thu.
+   - `Thua`: chọn lý do thua và lên lịch nuôi lại.
+6. Sau khi thắng:
+   - Gắn chương trình loyalty/gift card phù hợp cho khách.
+   - Lên activity chăm sóc sau bán.
+
+## Phần F - Phân quyền vận hành CRM khuyến nghị
+
+### Admin/Manager
+
+- Tạo/sửa stage pipeline.
+- Chỉnh field bắt buộc, activity type, dashboard.
+- Xem toàn bộ dữ liệu CRM và báo cáo team.
+
+### Sales User
+
+- Tạo/sửa cơ hội do mình phụ trách.
+- Thực hiện activity và cập nhật stage.
+- Không chỉnh cấu hình pipeline toàn hệ thống.
+
+## Phần G - Checklist go-live CRM
+
+1. Đã cài CRM và tạo đủ stage chuẩn.
+2. Đã chuẩn hóa field bắt buộc trên cơ hội.
+3. Đã có activity template và SLA follow-up.
+4. Đã phân quyền đúng Manager/Sales.
+5. Đã tạo dashboard KPI tuần cho Manager.
+6. Đã test ít nhất 3 case:
+   - Lead thắng -> tạo SO/POS thành công.
+   - Lead thua -> lưu lý do thua đúng.
+   - Lead cũ quay lại -> tạo cơ hội mới và follow-up đúng lịch.
+
+## Lỗi thường gặp và cách xử lý (CRM)
+
+- Pipeline nhiều stage nhưng Sales không cập nhật:
+  - Giảm stage về mức tối thiểu cần dùng, training lại tiêu chí chuyển stage.
+- Lead tạo thiếu dữ liệu:
+  - Bật bắt buộc field tối thiểu, không cho qua bước nếu thiếu.
+- Có lead nhưng không follow-up:
+  - Bắt buộc activity ngay khi tạo lead, theo dõi KPI activity quá hạn.
+- Báo cáo sai thực tế:
+  - Chuẩn hóa nhập `Expected Revenue`, `Expected Closing`, `Reason Lost`.
+
