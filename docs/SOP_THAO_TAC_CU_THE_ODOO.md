@@ -233,6 +233,123 @@ Trang scanner có ô nhập tay:
 
 ---
 
+## Phần F.2 - Setup kho bằng app `Barcode to PC` (khuyến nghị cho iPhone)
+
+Áp dụng khi dùng điện thoại quét barcode để thao tác trong `Inventory -> Receipts`.
+
+### 1) Cài và ghép nối thiết bị
+
+1. Trên iPhone cài app `Barcode to PC`.
+2. Trên máy tính mở `Barcode to PC Connector/Receiver` theo hướng dẫn app.
+3. Đảm bảo iPhone và máy tính cùng Wi-Fi LAN.
+4. Dùng iPhone quét QR pairing từ màn hình máy tính để kết nối.
+
+### 2) Cấu hình app quét
+
+Trong app iPhone:
+
+- `Prefix`: để trống.
+- `Suffix/Postfix`: chọn `Enter` (`\n`).
+- Bật chế độ gửi tự động sau khi quét.
+
+Mục tiêu: mỗi lần quét sẽ gửi chuỗi barcode + Enter như bàn phím thật.
+
+### 3) Test kết nối trước khi vào Odoo
+
+1. Mở Notepad trên máy tính.
+2. Quét 1 tem barcode từ iPhone.
+3. Kỳ vọng: hiện đúng dãy số barcode và xuống dòng.
+
+Nếu Notepad chưa nhận, chưa thao tác trong Odoo.
+
+### 4) Quy trình nhập kho thực tế với Receipt
+
+Ví dụ có 5 phiếu nhận hàng cùng lúc:
+
+1. Vào `Inventory -> Operations -> Receipts`, lọc `Ready`.
+2. Mở `Receipt 1`.
+3. Trong tab operations:
+   - Quét barcode để tìm đúng dòng sản phẩm.
+   - Cập nhật `Done Qty` theo thực nhận:
+     - hàng lẻ: quét nhiều lần (mỗi lần +1),
+     - hàng thùng/lô: quét 1 lần rồi nhập tay số lượng (ví dụ 10).
+4. Đối chiếu `Done` với `Demand`.
+5. Đủ điều kiện thì bấm `Validate`.
+6. Lặp lại cho `Receipt 2..5`.
+
+### 5) Quy tắc xử lý sai lệch
+
+- Thiếu hàng: nhập `Done` theo thực tế, validate, xử lý backorder.
+- Thừa hàng: không tự nhập thừa nếu chưa có rule; báo quản lý/Purchase xác nhận.
+- Sai mã/sai size: đưa vào khu hold, không validate vào tồn chuẩn.
+- Có lot/serial: bắt buộc nhập lot/serial trước `Validate`.
+
+### 6) Lỗi thường gặp với `Barcode to PC`
+
+- Quét không vào Odoo:
+  - Kiểm tra tab Odoo đang focus, con trỏ ở ô nhận input.
+  - Kiểm tra app còn kết nối receiver.
+- Quét ra ký tự nhưng Odoo không chạy tìm:
+  - Thiếu `Suffix = Enter`.
+- Đang dùng được rồi tự mất:
+  - Mất Wi-Fi hoặc app iPhone bị sleep nền.
+  - Mở lại app và reconnect.
+
+---
+
+## Phần F.3 - Setup module `stock_receipt_barcode_guard` (auto jump receipt khi quét)
+
+Áp dụng khi muốn:
+
+- Quét barcode và hệ thống tự tìm đúng phiếu nhập (`Receipt`) đang mở.
+- Tăng `Done Qty` tự động mỗi lần quét.
+- Cảnh báo khi quét sai mã hoặc mã không thuộc phiếu nhập phù hợp.
+
+### 1) Cài module
+
+1. Vào `Apps`.
+2. Bấm `Update Apps List`.
+3. Tìm module `Stock Receipt Barcode Guard`.
+4. Bấm `Install`.
+5. Hard refresh trình duyệt (`Ctrl + F5`).
+
+### 2) Điều kiện vận hành
+
+- Đã gán `Barcode` cho sản phẩm/biến thể.
+- Dùng scanner dạng bàn phím (ví dụ `Barcode to PC`) với `Suffix = Enter`.
+- Người dùng đang thao tác trong màn hình model `stock.picking` (list/form Receipt).
+
+### 3) Flow quét thực tế
+
+1. Vào `Inventory -> Operations -> Receipts`.
+2. Bắt đầu quét barcode:
+   - Nếu mã chỉ thuộc 1 receipt open -> hệ thống tự mở đúng receipt đó.
+   - Nếu đang ở đúng receipt -> tăng `Done Qty` +1 cho dòng sản phẩm tương ứng.
+3. Quét đủ số lượng thực nhận (hoặc quét 1 lần rồi sửa `Done Qty` theo số thùng).
+4. Kiểm tra `Done` vs `Demand`.
+5. Bấm `Validate`.
+
+### 4) Trạng thái cảnh báo và ý nghĩa
+
+- `Barcode is not linked to any product`:
+  - Mã chưa gán vào field `Barcode` của sản phẩm.
+- `Barcode ... is not found in open incoming receipts`:
+  - Có mã sản phẩm nhưng không có phiếu nhập open chứa sản phẩm đó.
+- `belongs to multiple receipts`:
+  - Sản phẩm cùng lúc xuất hiện ở nhiều receipt open;
+  - Mở đúng receipt cần xử lý rồi quét lại.
+
+### 5) Quy tắc vận hành khuyến nghị
+
+- Không đứng ở ô tìm kiếm/filter khi quét (để tránh mã vào ô search).
+- Với sản phẩm số lượng lớn:
+  - Quét 1 lần để xác nhận đúng dòng,
+  - Nhập tay `Done Qty` theo thực nhận.
+- Với sản phẩm lẻ:
+  - Quét nhiều lần (mỗi lần +1).
+
+---
+
 ## Phần G - Kịch bản test chuẩn trước khi go-live
 
 ### Test 1: Barcode hợp lệ
