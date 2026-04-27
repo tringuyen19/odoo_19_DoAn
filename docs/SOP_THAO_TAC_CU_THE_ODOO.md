@@ -1,5 +1,153 @@
 # SOP THAO TÁC CỤ THỂ TRÊN ODOO (CẦM TAY CHỈ VIỆC)
 
+## 13) SOP chi tiết - Thiết lập thanh toán POS và SO (Cash/Bank QR/Transfer/COD) không phụ thuộc Accounting
+
+## Mục tiêu
+
+Thiết lập luồng thanh toán thực tế cho doanh nghiệp khi chưa dùng Accounting:
+
+- POS có 2 lựa chọn: `Cash` và `Bank Transfer (QR)`.
+- Sale Order có 2 lựa chọn: `Bank Transfer` và `COD`.
+- Khi chọn ngân hàng, hệ thống hiển thị QR có sẵn người nhận + số tiền đúng theo đơn.
+- Trạng thái thanh toán được theo dõi theo nghiệp vụ vận hành để kho/sales xử lý đúng luồng.
+
+## Phạm vi áp dụng
+
+- Module custom: `addons_custom/payment_ops_qr_flow`.
+- Áp dụng cho Odoo Community / môi trường chưa vận hành kế toán nội bộ.
+- Không tạo bút toán kế toán tự động; dùng trạng thái nghiệp vụ và đối soát ngân hàng ngoài hệ thống.
+
+---
+
+## Phần A - Cài module
+
+### Bước 1: Update Apps List
+
+1. Vào `Apps`.
+2. Bấm `Update Apps List`.
+
+### Bước 2: Cài module
+
+1. Tìm `Payment Ops QR Flow`.
+2. Bấm `Install`.
+3. Restart Odoo và hard refresh trình duyệt (`Ctrl + F5`).
+
+---
+
+## Phần B - Setup thông tin tài khoản nhận tiền để sinh QR
+
+### Bước 1: Vào màn hình Settings
+
+1. Vào `Point of Sale -> Configuration -> Settings`.
+2. Tìm block `Manual Payment QR (Without Accounting)`.
+
+### Bước 2: Khai báo thông tin nhận tiền
+
+- `Bank BIN`: mã BIN ngân hàng nhận (ví dụ `970422`).
+- `Account Number`: số tài khoản nhận.
+- `Account Name`: tên chủ tài khoản nhận.
+
+Lưu ý:
+
+- Đây là thông tin dùng chung để sinh QR cho POS và SO.
+- Nếu thiếu một trong 3 thông tin, hệ thống sẽ không tạo được QR.
+
+---
+
+## Phần C - Setup POS với 2 phương thức Cash và Bank QR
+
+### Bước 1: Tạo/Cấu hình payment method
+
+1. Vào `Point of Sale -> Configuration -> Payment Methods`.
+2. Đảm bảo có method `Cash`.
+3. Tạo method ngân hàng (ví dụ `Bank Transfer (QR)`), chọn journal loại bank nếu có.
+4. Trên method ngân hàng, bật `Manual Bank QR (No Accounting)`.
+
+### Bước 2: Gắn vào POS config
+
+1. Vào `Point of Sale -> Configuration -> Point of Sale`.
+2. Mở đúng quầy.
+3. Trong `Payment Methods`, chọn đúng 2 method: `Cash` và `Bank Transfer (QR)`.
+4. Save.
+
+---
+
+## Phần D - Setup Sale Order với Transfer/COD
+
+### Bước 1: Kiểm tra field trên SO
+
+Mở form đơn bán (`Sales -> Orders -> Quotations / Orders`), đảm bảo thấy:
+
+- `Payment Method (Ops)` với 2 giá trị:
+  - `Bank Transfer`
+  - `COD`
+- `Payment Status (Ops)` (readonly theo nghiệp vụ).
+- `Transfer QR URL` (hiển thị khi chọn `Bank Transfer`).
+
+### Bước 2: Các nút tác nghiệp trên SO
+
+Trên header đơn sẽ có các nút:
+
+- `Show Transfer QR`
+- `Mark Waiting Transfer`
+- `Mark Transfer Paid`
+- `Mark COD Pending`
+- `Mark COD Collected`
+- `Reset Payment Status`
+
+---
+
+## Phần E - Flow vận hành thực tế tại doanh nghiệp
+
+### 1) POS - Thu tiền mặt
+
+1. Thu ngân tạo đơn POS.
+2. Chọn payment method `Cash`.
+3. Nhập/nhận tiền và xác nhận đơn.
+4. Giao hàng ngay theo quy trình quầy.
+
+### 2) POS - Chuyển khoản ngân hàng bằng QR
+
+1. Thu ngân tạo đơn POS.
+2. Chọn payment method `Bank Transfer (QR)`.
+3. POS tự bật popup QR:
+   - Đúng tài khoản nhận.
+   - Đúng số tiền thanh toán của đơn.
+   - Có nội dung tham chiếu theo số đơn POS.
+4. Khách quét QR và chuyển khoản.
+5. Thu ngân đối chiếu thông báo nhận tiền thực tế (app bank/nhóm xác nhận) rồi hoàn tất đơn.
+
+### 3) SO - Bank Transfer
+
+1. Sales tạo SO, chọn `Payment Method (Ops) = Bank Transfer`.
+2. Bấm `Show Transfer QR` để mở QR gửi cho khách.
+3. Sau khi khách chuyển, bấm `Mark Transfer Paid`.
+4. Chỉ cho phép xuất kho/giao hàng khi trạng thái đã là `Paid Confirmed` theo quy định nội bộ.
+
+Gợi ý vận hành:
+
+- Khi vừa confirm SO, hệ thống tự chuyển sang `Waiting Transfer` nếu ban đầu là `Unpaid`.
+- Đội sales/ops đối soát chứng từ chuyển khoản trước khi giao hàng.
+
+### 4) SO - COD
+
+1. Sales tạo SO, chọn `Payment Method (Ops) = COD`.
+2. Confirm đơn và giao hàng.
+3. Trạng thái mặc định chuyển `COD Pending`.
+4. Khi shipper nộp tiền về, bấm `Mark COD Collected`.
+
+---
+
+## Phần F - Quy tắc kiểm soát nội bộ khuyến nghị
+
+- Không giao hàng SO chuyển khoản khi chưa `Paid Confirmed`.
+- COD phải có bước xác nhận đã thu và nộp tiền cuối ngày.
+- Cuối ngày xuất danh sách:
+  - đơn `Paid Confirmed`
+  - đơn `COD Collected`
+  để đối soát với sao kê ngân hàng và bảng kê giao hàng.
+- Trường hợp sai tiền/chuyển thiếu: giữ trạng thái `Waiting Transfer` và không giải phóng giao hàng.
+
 ## 12) SOP chi tiết - Quét Barcode trên điện thoại cho POS (module custom `pos_mobile_barcode_bridge`)
 
 ## Mục tiêu

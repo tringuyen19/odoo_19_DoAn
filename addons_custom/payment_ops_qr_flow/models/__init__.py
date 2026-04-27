@@ -1,0 +1,4 @@
+from . import pos_payment_method
+from . import res_company
+from . import res_config_settings
+from . import sale_order

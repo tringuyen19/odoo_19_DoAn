@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_payment_ops_qr_flow" model="ir.ui.view">
+        <field name="name">sale.order.form.payment.ops.qr.flow</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_open_transfer_qr"
+                    type="object"
+                    string="Show Transfer QR"
+                    class="btn-secondary"
+                    invisible="payment_flow_method != 'bank_transfer'"
+                />
+                <button
+                    name="action_mark_transfer_waiting"
+                    type="object"
+                    string="Mark Waiting Transfer"
+                    invisible="payment_flow_method != 'bank_transfer' or payment_flow_state == 'waiting_transfer'"
+                />
+                <button
+                    name="action_mark_transfer_paid"
+                    type="object"
+                    string="Mark Transfer Paid"
+                    class="btn-primary"
+                    invisible="payment_flow_method != 'bank_transfer' or payment_flow_state == 'paid_confirmed'"
+                />
+                <button
+                    name="action_mark_cod_pending"
+                    type="object"
+                    string="Mark COD Pending"
+                    invisible="payment_flow_method != 'cod' or payment_flow_state == 'cod_pending'"
+                />
+                <button
+                    name="action_mark_cod_collected"
+                    type="object"
+                    string="Mark COD Collected"
+                    class="btn-primary"
+                    invisible="payment_flow_method != 'cod' or payment_flow_state == 'cod_collected'"
+                />
+                <button
+                    name="action_reset_payment_ops_state"
+                    type="object"
+                    string="Reset Payment Status"
+                    invisible="payment_flow_state == 'unpaid'"
+                />
+            </xpath>
+
+            <xpath expr="//group[@name='order_details']/field[@name='payment_term_id']" position="after">
+                <field name="payment_flow_method"/>
+                <field name="payment_flow_state" readonly="1"/>
+                <field name="transfer_qr_url" widget="url" readonly="1" invisible="payment_flow_method != 'bank_transfer'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
