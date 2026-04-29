@@ -51,3 +51,13 @@ package.json
 /man/
 /share/
 /src/
+
+# local runtime and handover artifacts
+/venv/
+/handover_out/
+*.dump
+*.sql
+*.bak
+
+# docker/local overrides
+docker-compose.override.yml

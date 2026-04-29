@@ -196,22 +196,17 @@ ODOO_DATABASE=
 ### 5.3. Giải thích từng dòng trong `.env`
 
 - `POSTGRES_USER=odoo`
-  Đây là tài khoản PostgreSQL sẽ được tạo trong container database. Odoo container cũng sẽ dùng chính tài khoản này để kết nối sang PostgreSQL.
-
+Đây là tài khoản PostgreSQL sẽ được tạo trong container database. Odoo container cũng sẽ dùng chính tài khoản này để kết nối sang PostgreSQL.
 - `POSTGRES_PASSWORD=odoo`
-  Đây là mật khẩu của tài khoản PostgreSQL ở trên. Giá trị này phải đồng bộ với cấu hình mà Odoo dùng để kết nối DB.
-
+Đây là mật khẩu của tài khoản PostgreSQL ở trên. Giá trị này phải đồng bộ với cấu hình mà Odoo dùng để kết nối DB.
 - `POSTGRES_PORT=5433`
-  Đây là cổng PostgreSQL được mở ra ngoài máy host của bạn. PostgreSQL bên trong container vẫn chạy ở cổng `5432`, nhưng bên ngoài máy host sẽ truy cập qua `5433`.
-
+Đây là cổng PostgreSQL được mở ra ngoài máy host của bạn. PostgreSQL bên trong container vẫn chạy ở cổng `5432`, nhưng bên ngoài máy host sẽ truy cập qua `5433`.
 - `ODOO_HTTP_PORT=8069`
-  Đây là cổng web để bạn mở Odoo trên trình duyệt, ví dụ `http://localhost:8069`.
-
+Đây là cổng web để bạn mở Odoo trên trình duyệt, ví dụ `http://localhost:8069`.
 - `ODOO_LONGPOLLING_PORT=8072`
-  Đây là cổng realtime/websocket của Odoo, thường dùng cho các tính năng realtime hoặc bus.
-
+Đây là cổng realtime/websocket của Odoo, thường dùng cho các tính năng realtime hoặc bus.
 - `ODOO_DATABASE=`
-  Đây là tên database mà bạn muốn Odoo tập trung làm việc với. Nếu để trống, Odoo có thể hiện danh sách DB để bạn chọn. Nếu điền tên DB, bạn đang hướng tới việc chỉ chạy một DB cụ thể.
+Đây là tên database mà bạn muốn Odoo tập trung làm việc với. Nếu để trống, Odoo có thể hiện danh sách DB để bạn chọn. Nếu điền tên DB, bạn đang hướng tới việc chỉ chạy một DB cụ thể.
 
 ### 5.4. Khi nào cần sửa từng biến
 
@@ -271,12 +266,12 @@ Phù hợp khi:
 Ví dụ:
 
 ```dotenv
-ODOO_DATABASE=demo19
+ODOO_DATABASE=odoo-db
 ```
 
 Ý nghĩa:
 
-- bạn muốn tập trung chạy riêng DB `demo19`
+- bạn muốn tập trung chạy riêng DB `odoo-db`
 - phù hợp khi hệ thống chỉ dùng một database chính
 
 Phù hợp khi:
@@ -287,7 +282,7 @@ Phù hợp khi:
 
 ### 5.7. Ví dụ cấu hình thực tế nên dùng
 
-Nếu bạn đang migrate một hệ thống có DB tên `demo19`, bạn có thể dùng:
+Nếu bạn đang migrate một hệ thống có DB tên `odoo-db`, bạn có thể dùng:
 
 ```dotenv
 POSTGRES_USER=odoo
@@ -295,7 +290,7 @@ POSTGRES_PASSWORD=odoo
 POSTGRES_PORT=5433
 ODOO_HTTP_PORT=8069
 ODOO_LONGPOLLING_PORT=8072
-ODOO_DATABASE=demo19
+ODOO_DATABASE=odoo-db
 ```
 
 Nếu bạn chỉ muốn dựng Docker trước, chưa restore DB ngay, bạn có thể tạm dùng:
@@ -358,7 +353,7 @@ ODOO_DATABASE=
 Sau khi restore xong DB thật, lúc đó hãy đổi:
 
 ```dotenv
-ODOO_DATABASE=ten_db_thuc_te
+ODOO_DATABASE=odoo-db
 ```
 
 như vậy sẽ dễ thao tác hơn trong giai đoạn đầu migrate.
@@ -382,7 +377,7 @@ Giả sử:
 - cổng là `5432`
 - user là `odoo-user`
 - password là `123`
-- tên database là `demo19`
+- tên database là `odoo-db`
 
 Bạn có thể dump database bằng lệnh:
 
@@ -397,8 +392,8 @@ $env:PGPASSWORD="123"
   --host localhost `
   --port 5432 `
   --username odoo-user `
-  --dbname demo19 `
-  --file .\handover_out\demo19.dump
+  --dbname odoo-db `
+  --file .\handover_out\odoo-db.dump
 ```
 
 Giải thích:
@@ -409,7 +404,7 @@ Giải thích:
 Sau khi chạy xong, bạn phải có file:
 
 ```text
-.\handover_out\demo19.dump
+.\handover_out\odoo-db.dump
 ```
 
 ### 6.2. Backup filestore hiện tại
@@ -426,16 +421,16 @@ Theo cấu hình hiện tại, `data_dir` là:
 C:\Users\ADMIN\AppData\Local\OpenERP S.A.\Odoo
 ```
 
-Vậy filestore của database `demo19` sẽ nằm tại:
+Vậy filestore của database `odoo-db` sẽ nằm tại:
 
 ```text
-C:\Users\ADMIN\AppData\Local\OpenERP S.A.\Odoo\filestore\demo19
+C:\Users\ADMIN\AppData\Local\OpenERP S.A.\Odoo\filestore\odoo-db
 ```
 
 Bạn cần copy nguyên thư mục đó sang chỗ tạm, ví dụ:
 
 ```text
-.\handover_out\filestore\demo19
+.\handover_out\filestore\odoo-db
 ```
 
 Bạn có thể dùng PowerShell:
@@ -443,8 +438,8 @@ Bạn có thể dùng PowerShell:
 ```powershell
 New-Item -ItemType Directory -Force -Path .\handover_out\filestore | Out-Null
 Copy-Item `
-  "C:\Users\ADMIN\AppData\Local\OpenERP S.A.\Odoo\filestore\demo19" `
-  ".\handover_out\filestore\demo19" `
+  "C:\Users\ADMIN\AppData\Local\OpenERP S.A.\Odoo\filestore\odoo-db" `
+  ".\handover_out\filestore\odoo-db" `
   -Recurse -Force
 ```
 
@@ -493,12 +488,12 @@ docker compose logs -f odoo
 
 ## 8. Restore database vào PostgreSQL container
 
-Giả sử database cần migrate là `demo19`.
+Giả sử database cần migrate là `odoo-db`.
 
 ### 8.1. Copy file dump vào container PostgreSQL
 
 ```powershell
-docker cp .\handover_out\demo19.dump odoo19-db:/tmp/demo19.dump
+docker cp .\handover_out\odoo-db.dump odoo19-db:/tmp/odoo-db.dump
 ```
 
 ### 8.2. Tạo database mới trong container
@@ -507,17 +502,17 @@ Nếu database chưa tồn tại:
 
 ```powershell
 docker exec -e PGPASSWORD=odoo odoo19-db `
-  createdb -U odoo demo19
+  createdb -U odoo odoo-db
 ```
 
 Nếu database đã tồn tại từ trước, nên xóa và tạo lại:
 
 ```powershell
 docker exec -e PGPASSWORD=odoo odoo19-db `
-  dropdb --if-exists -U odoo demo19
+  dropdb --if-exists -U odoo odoo-db
 
 docker exec -e PGPASSWORD=odoo odoo19-db `
-  createdb -U odoo demo19
+  createdb -U odoo odoo-db
 ```
 
 ### 8.3. Restore dump vào database trong container
@@ -530,8 +525,8 @@ docker exec -e PGPASSWORD=odoo odoo19-db `
   --no-owner `
   --no-privileges `
   -U odoo `
-  -d demo19 `
-  /tmp/demo19.dump
+  -d odoo-db `
+  /tmp/odoo-db.dump
 ```
 
 Giải thích:
@@ -556,22 +551,22 @@ Trong Docker, Odoo đang dùng:
 /var/lib/odoo/data
 ```
 
-Vì vậy filestore của database `demo19` phải nằm ở:
+Vì vậy filestore của database `odoo-db` phải nằm ở:
 
 ```text
-/var/lib/odoo/data/filestore/demo19
+/var/lib/odoo/data/filestore/odoo-db
 ```
 
 ### 9.1. Tạo thư mục filestore trong container
 
 ```powershell
-docker exec odoo19-app mkdir -p /var/lib/odoo/data/filestore/demo19
+docker exec odoo19-app mkdir -p /var/lib/odoo/data/filestore/odoo-db
 ```
 
 ### 9.2. Copy filestore từ máy host vào container
 
 ```powershell
-docker cp .\handover_out\filestore\demo19\. odoo19-app:/var/lib/odoo/data/filestore/demo19
+docker cp .\handover_out\filestore\odoo-db\. odoo19-app:/var/lib/odoo/data/filestore/odoo-db
 ```
 
 Sau bước này, Odoo trong container mới có đủ file để khớp với dữ liệu đã restore.
@@ -581,7 +576,7 @@ Sau bước này, Odoo trong container mới có đủ file để khớp với d
 Nếu bạn muốn Odoo chỉ làm việc với đúng một database, hãy sửa file `.env`:
 
 ```dotenv
-ODOO_DATABASE=demo19
+ODOO_DATABASE=odoo-db
 ```
 
 Sau đó chạy lại:
@@ -595,7 +590,7 @@ Lưu ý:
 
 - hiện tại `docker-compose.yml` đã có biến `ODOO_DATABASE`
 - nhưng `docker/odoo.conf` chưa ép cứng `db_name`
-- vì vậy nếu muốn khóa chặt theo một DB duy nhất, bạn có thể bổ sung thêm `db_name = demo19` vào `docker/odoo.conf`
+- vì vậy nếu muốn khóa chặt theo một DB duy nhất, bạn có thể bổ sung thêm `db_name = odoo-db` vào `docker/odoo.conf`
 
 Nếu chưa cần khóa cứng, bạn có thể để trống và vẫn chọn database trong giao diện Odoo.
 
@@ -610,7 +605,7 @@ Sau khi DB và filestore đã được đưa vào Docker, nên chạy update mod
 Lệnh đầy đủ:
 
 ```powershell
-docker exec -it odoo19-app python odoo-bin -c docker/odoo.conf -d demo19 -u all --stop-after-init
+docker exec -it odoo19-app python odoo-bin -c docker/odoo.conf -d odoo-db -u all --stop-after-init
 ```
 
 Sau đó khởi động lại Odoo:
@@ -622,7 +617,7 @@ docker compose restart odoo
 Nếu chỉ muốn update các module custom hiện có:
 
 ```powershell
-docker exec -it odoo19-app python odoo-bin -c docker/odoo.conf -d demo19 -u activity_notification,customer_vip_tier,duplicate_guard,payment_ops_qr_flow,pos_mobile_barcode_bridge,pos_zero_stock_guard,sale_promo_helper,stock_receipt_barcode_guard --stop-after-init
+docker exec -it odoo19-app python odoo-bin -c docker/odoo.conf -d odoo-db -u activity_notification,customer_vip_tier,duplicate_guard,payment_ops_qr_flow,pos_mobile_barcode_bridge,pos_zero_stock_guard,sale_promo_helper,stock_receipt_barcode_guard --stop-after-init
 ```
 
 ## 12. Kiểm tra sau khi migrate
